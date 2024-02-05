@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Name>MsSqlProjectHelperDb</Name>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>4.1</ProjectVersion>
+    <ProjectGuid>{d44afa73-b5b5-44df-8c68-1b892db5e4df}</ProjectGuid>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider</DSP>
+    <OutputType>Database</OutputType>
+    <RootPath>
+    </RootPath>
+    <RootNamespace>MsSqlProjectHelperDb</RootNamespace>
+    <AssemblyName>MsSqlProjectHelperDb</AssemblyName>
+    <ModelCollation>1033,CI</ModelCollation>
+    <DefaultFileStructure>BySchemaType</DefaultFileStructure>
+    <DeployToDatabase>True</DeployToDatabase>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetLanguage>CS</TargetLanguage>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <SqlServerVerification>False</SqlServerVerification>
+    <IncludeCompositeObjects>True</IncludeCompositeObjects>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
+    <IncludeSchemaNameInFileName>True</IncludeSchemaNameInFileName>
+    <GenerateCreateScript>True</GenerateCreateScript>
+    <DefaultCollation>Latin1_General_CI_AS</DefaultCollation>
+    <ReadCommittedSnapshot>True</ReadCommittedSnapshot>
+    <DefaultFilegroup>PRIMARY</DefaultFilegroup>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
+    <!-- Default to the v11.0 targets path if the targets file for the current VS version is not found -->
+    <SSDTExists Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets')">True</SSDTExists>
+    <VisualStudioVersion Condition="'$(SSDTExists)' == ''">11.0</VisualStudioVersion>
+  </PropertyGroup>
+  <Import Condition="'$(SQLDBExtensionsRefPath)' != ''" Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <ItemGroup>
+    <Folder Include="Properties" />
+    <Folder Include="Tables\" />
+    <Folder Include="Functions\" />
+    <Folder Include="Stored Procedures\" />
+    <Folder Include="User Defined Types\" />
+    <Folder Include="Security\" />
+    <Folder Include="Scripts" />
+    <Folder Include="DeploymentScripts" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="Tables\Enum.ParamEnumMapping.sql" />
+    <Build Include="Tables\dbo.DataTypeMap.sql" />
+    <Build Include="Tables\dbo.Version.sql" />
+    <Build Include="Tables\Enum.Casing.sql" />
+    <Build Include="Tables\Enum.ClassAccess.sql" />
+    <Build Include="Tables\Enum.Language.sql" />
+    <Build Include="Tables\dbo.Project.sql" />
+    <Build Include="Tables\dbo.ErrorLog.sql" />
+    <Build Include="Tables\Enum.TemplateType.sql" />
+    <Build Include="Tables\dbo.Template.sql" />
+    <Build Include="Functions\Internal.RemoveFromStart.sql" />
+    <Build Include="Functions\Internal.RemoveFromEnd.sql" />
+    <Build Include="Functions\Internal.GetCaseName.sql" />
+    <Build Include="Functions\Internal.GetName.sql" />
+    <Build Include="Functions\Internal.SplitName.sql" />
+    <Build Include="Functions\Internal.ProcessTemplate.sql" />
+    <Build Include="Functions\dbo.DelimitedSplitN4K.sql" />
+    <Build Include="Stored Procedures\Internal.GenerateEnumCode.sql" />
+    <Build Include="Stored Procedures\Internal.GetStoredProcedures.sql" />
+    <Build Include="Stored Procedures\Internal.GetStoredProcParams.sql" />
+    <Build Include="Stored Procedures\Internal.GetStoredProcResultSet.sql" />
+    <Build Include="Stored Procedures\Internal.GetEnumForeignKeys.sql" />
+    <Build Include="Stored Procedures\Internal.GenerateResultTypeCode.sql" />
+    <Build Include="Stored Procedures\Internal.GenerateStoredProcWrapperCode.sql" />
+    <Build Include="Stored Procedures\Internal.PrintError.sql" />
+    <Build Include="Stored Procedures\Internal.LogError.sql" />
+    <Build Include="Stored Procedures\Project.CreateProject.sql" />
+    <Build Include="Stored Procedures\Project.GenerateCode.sql" />
+    <Build Include="Stored Procedures\Internal.GetEnums.sql" />
+    <Build Include="Stored Procedures\Internal.GetEnumValues.sql" />
+    <Build Include="Stored Procedures\Internal.GenerateStartCode.sql" />
+    <Build Include="Stored Procedures\Internal.GenerateEndCode.sql" />
+    <Build Include="User Defined Types\Internal.Enum.sql" />
+    <Build Include="User Defined Types\Internal.EnumValue.sql" />
+    <Build Include="User Defined Types\Internal.Variable.sql" />
+    <Build Include="Security\Enum.sql" />
+    <Build Include="Security\Internal.sql" />
+    <Build Include="Security\Project.sql" />
+    <None Include="DeploymentScripts\MsSqlProjectHelperDb_FullDeploy_v_0.2.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <PostDeploy Include="Scripts\Script.PostDeployment.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Scripts\Script.StaticDataInsertsGen.sql" />
+    <None Include="Scripts\Script.StaticDataInserts.sql" />
+    <None Include="Scripts\Script.Templates.sql" />
+    <None Include="Scripts\Script.Version.sql" />
+    <None Include="MsSqlProjectHelperDb.FullDeploy.publish.publish.xml" />
+  </ItemGroup>
+</Project>
