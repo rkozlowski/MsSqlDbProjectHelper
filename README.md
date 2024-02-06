@@ -72,7 +72,8 @@ EXEC @return_value = [Project].[GenerateCode]
         @projectName = N'Test',                 -- Your project name
         @errorMessage = @errorMessage OUTPUT;   -- Error message (in case of failure)
 
-PRINT ('Return Value:  ' + LOWER(@return_value));        -- Return value of 0 indicates success
-PRINT ('Error message: ' + ISNULL(@errorMessage, ''));  
+PRINT('Return Value:  ' + LOWER(@return_value));        -- Return value of 0 indicates success
+PRINT('Error message: ' + ISNULL(@errorMessage, ''));  
+
 ```
 
