@@ -19,7 +19,7 @@ Helper database/tools for calling SQL Server stored procedures from C#
 - You can call the stored procedure `[Project].[CreateProject]` to create a new project.
 - Alternatively, you can insert your data into the '[dbo].[Project]' table.
 - The following code can be used to create the project. Please modify it to suit your needs.
-```
+```TSQL
 DECLARE	@return_value int,
 		@errorMessage nvarchar(2000);
 
@@ -52,7 +52,7 @@ GO
 > Generated code depends on the great Dapper library, so please add it to your project using Nuget:
 > https://www.nuget.org/packages/Dapper/
 - The following code can be used to generate C# code. Please modify it to suit your needs.
-```
+```TSQL
 SET NOCOUNT ON;
 
 DECLARE	@return_value int,
