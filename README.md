@@ -75,5 +75,7 @@ EXEC @return_value = [Project].[GenerateCode]
 PRINT('Return Value:  ' + LOWER(@return_value));        -- Return value of 0 indicates success
 PRINT('Error message: ' + ISNULL(@errorMessage, ''));  
 
+GO
+
 ```
 
