@@ -21,38 +21,38 @@ Helper database/tools for calling SQL Server stored procedures from C#
 - The following code can be used to create the project. Please modify it to suit your needs.
 ```TSQL
 DECLARE	@return_value int,
-		@errorMessage nvarchar(2000);
+        @errorMessage nvarchar(2000);
 
-EXEC	@return_value = [Project].[CreateProject]
-		@name = N'Test',                        -- Your project name
-		@namespaceName = N'FooBarBaz',          -- Namespace name for generated code
-		@className = N'TestDbHelper',           -- Class name for generated code
-		@errorMessage = @errorMessage OUTPUT,   -- Error message (in case of failure)
-		@defaultDatabase = N'Test',             -- Name of the default source database
-                                                        -- (a database with definitions of the stored procedures)
-		@enumSchema = N'Enum',                  -- Name of the schema of the enum tables
-		@storedProcSchema = N'Api',             -- Name of the schema of the stored procedures
-		@classAccess = N'public',               -- Class access
-		@generateAllStoredProcWrappers = 1,     -- Flag specifying if wrappers should be created
-                                                        -- for all stored procedures in the @storedProcSchema
-		@generateAllEnumWrappers = 1,           -- Flag specifying if enums should be created
-                                                        -- for all tables in the @enumSchema
-		@language = N'c#',                      -- Only C# is supported
-		@paramEnumMappingId = 2,                -- Mapping of stored procedure parameters to the enums:
-                                                        --     1 - No mapping
-                                                        --     2 - Maps if the name of the input parameter matches the enum name
-                                                        --     3 - Maps if the name of the input parameter ends with "Id" suffix
-                                                        --         and matches the enum name after removing "Id" suffix
-                                                        --     4 - Maps if the name of the input parameter
-                                                        --         (with or without "Id" suffix) matches the enum name
-		@mapResultSetEnums = 1,                 -- Flag specifying the mapping of the result set columns to enums
-		@generateStaticClass = 1,               -- Flag specifying generation of a static class
-		@treatOutputParamAsInputOutput = 0;     -- Flag specifying whether output parameters should be treated
-                                                        -- as input/output
+EXEC @return_value = [Project].[CreateProject]
+        @name = N'Test',                        -- Your project name
+        @namespaceName = N'FooBarBaz',          -- Namespace name for generated code
+        @className = N'TestDbHelper',           -- Class name for generated code
+        @errorMessage = @errorMessage OUTPUT,   -- Error message (in case of failure)
+        @defaultDatabase = N'Test',             -- Name of the default source database
+                                                -- (a database with definitions of the stored procedures)
+        @enumSchema = N'Enum',                  -- Name of the schema of the enum tables
+        @storedProcSchema = N'Api',             -- Name of the schema of the stored procedures
+        @classAccess = N'public',               -- Class access
+        @generateAllStoredProcWrappers = 1,     -- Flag specifying if wrappers should be created
+                                                -- for all stored procedures in the @storedProcSchema
+        @generateAllEnumWrappers = 1,           -- Flag specifying if enums should be created
+                                                -- for all tables in the @enumSchema
+        @language = N'c#',                      -- Only C# is supported
+        @paramEnumMappingId = 2,                -- Mapping of stored procedure parameters to the enums:
+                                                --     1 - No mapping
+                                                --     2 - Maps if the name of the input parameter matches the enum name
+                                                --     3 - Maps if the name of the input parameter ends with "Id" suffix
+                                                --         and matches the enum name after removing "Id" suffix
+                                                --     4 - Maps if the name of the input parameter
+                                                --         (with or without "Id" suffix) matches the enum name
+        @mapResultSetEnums = 1,                 -- Flag specifying the mapping of the result set columns to enums
+        @generateStaticClass = 1,               -- Flag specifying generation of a static class
+        @treatOutputParamAsInputOutput = 0;     -- Flag specifying whether output parameters should be treated
+                                                -- as input/output
 
-SELECT	@errorMessage as N'@errorMessage';
+SELECT @errorMessage as N'@errorMessage';
 
-SELECT	'Return Value' = @return_value;                 -- Return value of 0 indicates success
+SELECT 'Return Value' = @return_value;          -- Return value of 0 indicates success
 
 GO
 ```
@@ -66,12 +66,13 @@ GO
 SET NOCOUNT ON;
 
 DECLARE	@return_value int,
-		@errorMessage nvarchar(2000);
+        @errorMessage nvarchar(2000);
 
-EXEC	@return_value = [Project].[GenerateCode]
-		@projectName = N'Test',                 -- Your project name
-		@errorMessage = @errorMessage OUTPUT;   -- Error message (in case of failure)
-PRINT ('Return Value: ' + LOWER(@return_value));        -- Return value of 0 indicates success
+EXEC @return_value = [Project].[GenerateCode]
+        @projectName = N'Test',                 -- Your project name
+        @errorMessage = @errorMessage OUTPUT;   -- Error message (in case of failure)
+
+PRINT ('Return Value:  ' + LOWER(@return_value));        -- Return value of 0 indicates success
 PRINT ('Error message: ' + ISNULL(@errorMessage, ''));  
 ```
 
