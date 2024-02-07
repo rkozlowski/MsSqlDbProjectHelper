@@ -41,13 +41,13 @@ EXEC @return_value = [Project].[CreateProject]
     @paramEnumMappingId = 2,              -- Mapping of stored procedure parameters to the enums:
                                           --   1 - No mapping
                                           --   2 - Maps if the name of the input parameter
-                                          --     matches the enum name
+                                          --       matches the enum name
                                           --   3 - Maps if the name of the input parameter
-                                          --     ends with "Id" suffix and matches the enum name
-                                          --     after removing "Id" suffix
+                                          --       ends with "Id" suffix and matches the enum name
+                                          --       after removing "Id" suffix
                                           --   4 - Maps if the name of the input parameter
-                                          --     (with or without "Id" suffix)
-                                          --     matches the enum name
+                                          --       (with or without "Id" suffix)
+                                          --       matches the enum name
     @mapResultSetEnums = 1,               -- Flag specifying the mapping of the result set
                                           -- columns to enums
     @generateStaticClass = 1,             -- Flag specifying generation of a static class
