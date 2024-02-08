@@ -168,6 +168,58 @@ IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=23)
 INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
 VALUES (23, N'WrapperReturnParamDec');
 
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=24) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (24, N'TableTypeStart');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=25) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (25, N'TableTypeEnd');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=26) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (26, N'TableTypeProperty');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=27) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (27, N'WrapperParamPreExecTableType');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=28) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (28, N'TableTypeDtStart');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=29) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (29, N'TableTypeDtEnd');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=30) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (30, N'TableTypeDtColumn');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=31) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (31, N'TableTypeDtRowsStart');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=32) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (32, N'TableTypeDtRowsEnd');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=33) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (33, N'TableTypeDtRow');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=34) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (34, N'TableTypeDtColumnAdd');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=35) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (35, N'TableTypeDtColumnMaxLen');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=36) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (36, N'TableTypeDtRowNull');
+
 
 -- table: [dbo].[DataTypeMap]
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -273,4 +325,4 @@ VALUES (1, N'sql_variant', N'object', N'SqlDbType.Variant', N'DbType.Object', 1,
 
 
 
--- Completion time: 2024-02-05T17:51:16.1335005+00:00
+-- Completion time: 2024-02-08T21:10:25.9416318+00:00

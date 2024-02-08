@@ -109,6 +109,10 @@
     <Build Include="Security\Internal.sql" />
     <Build Include="Security\Project.sql" />
     <None Include="DeploymentScripts\MsSqlProjectHelperDb_FullDeploy_v_0.2.sql" />
+    <Build Include="Stored Procedures\Internal.GetTableTypeColumns.sql" />
+    <Build Include="Stored Procedures\Internal.GenerateTableTypeCode.sql" />
+    <Build Include="DeploymentScripts\MsSqlProjectHelperDb_FullDeploy_v_0.3.sql" />
+    <Build Include="DeploymentScripts\MsSqlProjectHelperDb_Upgrade_v_0.2_to_v_0.3.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Scripts\Script.PostDeployment.sql" />
@@ -119,5 +123,6 @@
     <None Include="Scripts\Script.Templates.sql" />
     <None Include="Scripts\Script.Version.sql" />
     <None Include="MsSqlProjectHelperDb.FullDeploy.publish.publish.xml" />
+    <None Include="MsSqlProjectHelperDb.Upgrade.publish.publish.publish.xml" />
   </ItemGroup>
 </Project>

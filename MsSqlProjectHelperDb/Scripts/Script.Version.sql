@@ -1,5 +1,5 @@
-﻿DECLARE @version VARCHAR(50) = '0.2';
-DECLARE @description NVARCHAR(500) = N'Initial support for generating wrapper code for calling stored procedures.'
+﻿DECLARE @version VARCHAR(50) = '0.3';
+DECLARE @description NVARCHAR(500) = N'Added support for table valued parameters.'
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Version] WHERE [Version]=@version)
 BEGIN

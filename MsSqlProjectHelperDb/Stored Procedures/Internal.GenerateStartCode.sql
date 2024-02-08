@@ -56,7 +56,8 @@ BEGIN
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'ClassName', @className);
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'ClassAccess', @classAccess);
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'Timestamp', CONVERT(NVARCHAR(50), CAST(SYSDATETIME() AS DATETIME2(0)), 120));
-	INSERT INTO @vars ([Name], [Value]) VALUES (N'ToolName', N'DbProjectHelper');
+	INSERT INTO @vars ([Name], [Value]) VALUES (N'ToolName', N'MsSqlDbProjectHelper');
+	INSERT INTO @vars ([Name], [Value]) VALUES (N'ToolUrl', N'https://github.com/rkozlowski/MsSqlDbProjectHelper');
 	INSERT INTO @vars ([Name], [Value]) 
 	SELECT TOP(1) N'ToolVersion', [Version]
 	FROM [dbo].[Version]

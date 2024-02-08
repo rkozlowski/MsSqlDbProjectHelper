@@ -24,6 +24,13 @@ BEGIN
 
 	DECLARE @OPT_GEN_ALL INT = (@OPT_GEN_ENUMS | @OPT_GEN_RESULT_TYPES | @OPT_GEN_TVP_TYPES | @OPT_GEN_SP_WRAPPERS);
 
+
+	DECLARE @C_PASCAL_CASE TINYINT = 1;
+	DECLARE @C_CAMEL_CASE TINYINT = 2;
+	DECLARE @C_SNAKE_CASE TINYINT = 3;
+	DECLARE @C_UNDERSCORE_CAMEL_CASE TINYINT = 4;
+	DECLARE @C_UPPER_SNAKE_CASE TINYINT = 5;
+
 	IF ISNULL(@options, 0)=0 
 	BEGIN
 		SET @options = @OPT_GEN_ALL;
@@ -186,6 +193,33 @@ BEGIN
 		[Name] NVARCHAR(200) NOT NULL UNIQUE
 	);
 
+	DROP TABLE IF EXISTS #TableType;
+	CREATE TABLE #TableType
+	(
+		[Id] INT NOT NULL IDENTITY (1, 1) PRIMARY KEY,
+		[SqlType] NVARCHAR(128) NOT NULL, 
+		[SqlTypeSchema] NVARCHAR(128) NOT NULL,
+		[Name] NVARCHAR(200) NOT NULL UNIQUE,
+		UNIQUE ([SqlType], [SqlTypeSchema])
+	);
+
+	DROP TABLE IF EXISTS #TableTypeColumn;
+	CREATE TABLE #TableTypeColumn
+	(
+		[Id] INT NOT NULL IDENTITY (1, 1) PRIMARY KEY,
+		[TableTypeId] INT NOT NULL,
+		[ColumnId] INT NOT NULL,
+		[Name] SYSNAME NULL,
+		[IsNullable] BIT NOT NULL,
+		[SqlType] NVARCHAR(128) NOT NULL, 
+		[SqlTypeSchema] NVARCHAR(128) NOT NULL, 
+		[MaxLen] SMALLINT NOT NULL, 
+		[Precision] TINYINT NOT NULL, 
+		[Scale] TINYINT NOT NULL,
+		[EnumId] INT NULL,
+		[PropertyName] NVARCHAR(200) NULL,
+	);
+
 	DECLARE	@retVal int;
 	
 	
@@ -271,11 +305,35 @@ BEGIN
 
 	UPDATE #StoredProcParam SET [ParamName]=[Internal].[GetName](@langId, [Name], NULL);
 
+	INSERT INTO #TableType ([SqlType], [SqlTypeSchema], [Name])
+	SELECT DISTINCT spp.[SqlType], spp.[SqlTypeSchema], [Internal].[GetName](@langId, spp.[SqlType], spp.[SqlTypeSchema])
+	FROM #StoredProcParam spp
+	WHERE spp.[IsTypeUserDefined]=1 AND spp.IsTableType=1;
+
+	SELECT @id=MIN([Id]) FROM #TableType;
+	
+	WHILE @id IS NOT NULL
+	BEGIN
+		EXEC @retVal = [Internal].[GetTableTypeColumns] @projectId = @projectId, @dbId = @dbId, @langId = @langId, @ttId = @id, @errorMessage = @errorMessage OUTPUT;
+		IF @retVal<>0
+		BEGIN
+			SELECT @rc = @retVal;
+			RETURN @rc;
+		END
+		
+		SELECT @id = MIN([Id]) FROM #TableType WHERE [Id]>@id;
+	END
+
+	UPDATE #TableTypeColumn
+	SET [PropertyName]=[Internal].[GetCaseName](@C_PASCAL_CASE, [Name], NULL);
+
 	--SELECT * FROM #Enum ORDER BY [Id];
 	--SELECT * FROM #EnumVal ORDER BY [Id];
 	--SELECT * FROM #StoredProc ORDER BY [Id];
 	--SELECT * FROM #StoredProcParam ORDER BY [Id];
 	--SELECT * FROM #StoredProcResultSet ORDER BY [Id];
+	--SELECT * FROM #TableType;
+	--SELECT * FROM #TableTypeColumn ORDER BY [Id];
 
 	CREATE TABLE #Output
 	(
@@ -320,6 +378,23 @@ BEGIN
 			SELECT @id=MIN([Id]) FROM #StoredProcResultType WHERE [Id] > @id;
 		 END
 	END
+
+	IF (@options & @OPT_GEN_TVP_TYPES) = @OPT_GEN_TVP_TYPES
+	BEGIN
+		 SELECT @id=MIN([Id]) FROM #TableType;
+		 WHILE @id IS NOT NULL
+		 BEGIN
+			EXEC @retVal = [Internal].[GenerateTableTypeCode] @projectId = @projectId, @dbId = @dbId, @langId = @langId, @ttId = @id, @errorMessage = @errorMessage OUTPUT;
+			IF @retVal<>0
+			BEGIN
+				SELECT @rc = @retVal;
+				RETURN @rc;
+			END
+			SELECT @id=MIN([Id]) FROM #TableType WHERE [Id] > @id;
+		 END
+	END
+
+	
 	
 	IF (@options & @OPT_GEN_SP_WRAPPERS) = @OPT_GEN_SP_WRAPPERS
 	BEGIN
@@ -355,6 +430,8 @@ BEGIN
 	DROP TABLE IF EXISTS #SingleStoredProcResultSet;
 	DROP TABLE IF EXISTS #EnumForeignKey;
 	DROP TABLE IF EXISTS #StoredProcResultType;
+	DROP TABLE IF EXISTS #TableType;
+	DROP TABLE IF EXISTS #TableTypeColumn;
 
 	SET @rc = @RC_OK;
 	RETURN @rc;

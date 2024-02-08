@@ -53,7 +53,7 @@ BEGIN
 	SET @query += N'WHERE sch2.name=' + QUOTENAME(@enumSchema, '''') + N' AND tab2.name=' + QUOTENAME(@enumTable, '''') + N' AND col2.name=' + QUOTENAME(@valueColumn, '''');
 	SET @query += N';
 	';
-	PRINT(@query);
+	--PRINT(@query);
 	
 	INSERT INTO #EnumForeignKey ([EnumId], [ForeignSchema], [ForeignTable], [ForeignColumn])
 	EXEC(@query);

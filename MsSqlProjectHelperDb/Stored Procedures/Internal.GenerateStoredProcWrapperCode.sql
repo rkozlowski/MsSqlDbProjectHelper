@@ -33,6 +33,7 @@ BEGIN
 	DECLARE @TT_WRAPPER_RETURN_PARAM TINYINT = 21;
 	DECLARE @TT_WRAPPER_END2 TINYINT = 22;
 	DECLARE @TT_WRAPPER_RETURN_PARAM_DEC TINYINT = 23;
+	DECLARE @TT_WRAPPER_PARAM_PRE_EXEC_TABLE_TYPE TINYINT = 27;
 
 	DECLARE @C_PASCAL_CASE TINYINT = 1;
 	DECLARE @C_CAMEL_CASE TINYINT = 2;
@@ -119,6 +120,11 @@ BEGIN
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'Scale', NULL);
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'Sep', N',');
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'OutVarDecl', CASE WHEN @treatOutputParamAsInputOutput=1 THEN N'' ELSE N'var ' END);
+
+	INSERT INTO @vars ([Name], [Value]) VALUES (N'DtName', NULL);
+	INSERT INTO @vars ([Name], [Value]) VALUES (N'ReaderName', NULL);
+	INSERT INTO @vars ([Name], [Value]) VALUES (N'TvpName', NULL);	
+	INSERT INTO @vars ([Name], [Value]) VALUES (N'TableType', NULL);	
 	
 	DECLARE @id INT = (SELECT MIN([Id]) FROM #StoredProcParam WHERE [StoredProcId]=@spId AND [IsOutput]=1);
 	UPDATE @vars SET [Value]=CASE WHEN @id IS NOT NULL THEN N',' ELSE N'' END WHERE [Name]=N'Sep';
@@ -202,13 +208,15 @@ BEGIN
 	
 	SELECT @id=MIN([Id]) FROM #StoredProcParam WHERE [StoredProcId]=@spId AND (@treatOutputParamAsInputOutput=1 OR [IsOutput]=0);
 	SELECT @lastId=MAX([Id]) FROM #StoredProcParam WHERE [StoredProcId]=@spId AND (@treatOutputParamAsInputOutput=1 OR [IsOutput]=0);
-
+	DECLARE @isTableType BIT;
+	
 	WHILE @id IS NOT NULL
 	BEGIN		
-		SELECT @name=p.[Name], @type=ISNULL(@className + N'.' + e.[EnumName], dtm.[NativeType]) + CASE WHEN dtm.[IsNullable]=0 THEN N'?' ELSE N'' END, 
-			@paramName=p.[ParamName], @isOutput=p.[IsOutput], @paramOpt = N''			
+		SELECT @name=p.[Name], @type=ISNULL(ISNULL(N'IEnumerable<' + @className + N'.' + tt.[Name] + N'>', @className + N'.' + e.[EnumName]), dtm.[NativeType]) + CASE WHEN tt.[Id] IS NULL AND dtm.[IsNullable]=0 THEN N'?' ELSE N'' END, 
+			@paramName=p.[ParamName], @isOutput=p.[IsOutput], @paramOpt = N'', @isTableType=CASE WHEN tt.[Id] IS NULL THEN 0 ELSE 1 END
 		FROM #StoredProcParam p 
-		JOIN [dbo].[DataTypeMap] dtm ON dtm.[SqlType]=p.[SqlType]
+		LEFT JOIN [dbo].[DataTypeMap] dtm ON dtm.[SqlType]=p.[SqlType]
+		LEFT JOIN #TableType tt ON p.[IsTableType]=1 AND p.[IsTypeUserDefined]=1 AND p.[SqlTypeSchema]=tt.[SqlTypeSchema] AND p.[SqlType]=tt.[SqlType]
 		LEFT JOIN #Enum e ON p.[EnumId]=e.[Id]
 		WHERE p.[Id]=@id;
 
@@ -250,6 +258,11 @@ BEGIN
 	WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_WRAPPER_PREP
 	ORDER BY c.[Id];
 
+	DECLARE @dtName NVARCHAR(200);
+	DECLARE @readerName NVARCHAR(200);
+	DECLARE @tvpName NVARCHAR(300);
+	DECLARE @tableType NVARCHAR(300);
+
 	SELECT @id=MIN([Id]) FROM #StoredProcParam WHERE [StoredProcId]=@spId;
 	WHILE @id IS NOT NULL
 	BEGIN		
@@ -259,9 +272,15 @@ BEGIN
 			@size=CASE WHEN dtm.[SizeNeeded]=1 THEN LOWER(p.[MaxLen]) ELSE 'null' END,
 			@precision=CASE WHEN dtm.[PrecisionNeeded]=1 THEN LOWER(p.[Precision]) ELSE 'null' END,
 			@scale=CASE WHEN dtm.[ScaleNeeded]=1 THEN LOWER(p.[Scale]) ELSE 'null' END,
-			@typeCast=CASE WHEN e.[Id] IS NULL THEN N'' ELSE N'(' + dtm.[NativeType] + CASE WHEN dtm.[IsNullable]=0 THEN N'?' ELSE N'' END + N') ' END
+			@typeCast=CASE WHEN e.[Id] IS NULL THEN N'' ELSE N'(' + dtm.[NativeType] + CASE WHEN dtm.[IsNullable]=0 THEN N'?' ELSE N'' END + N') ' END,
+			@isTableType=CASE WHEN tt.[Id] IS NULL THEN 0 ELSE 1 END,
+			@dtName=[Internal].[GetCaseName](@C_CAMEL_CASE, N'dt_' + @paramName, NULL),
+			@readerName=[Internal].[GetCaseName](@C_CAMEL_CASE,@paramName + '_reader', NULL),
+			@tvpName=QUOTENAME(tt.[SqlTypeSchema]) + N'.' + QUOTENAME(tt.[SqlType]),
+			@tableType=@className + N'.' + tt.[Name]
 		FROM #StoredProcParam p 
-		JOIN [dbo].[DataTypeMap] dtm ON dtm.[SqlType]=p.[SqlType]
+		LEFT JOIN [dbo].[DataTypeMap] dtm ON dtm.[SqlType]=p.[SqlType]
+		LEFT JOIN #TableType tt ON p.[IsTableType]=1 AND p.[IsTypeUserDefined]=1 AND p.[SqlTypeSchema]=tt.[SqlTypeSchema] AND p.[SqlType]=tt.[SqlType]
 		LEFT JOIN #Enum e ON p.[EnumId]=e.[Id]
 		WHERE p.[Id]=@id;
 
@@ -292,6 +311,22 @@ BEGIN
 		UPDATE @vars
 		SET [Value]=@typeCast
 		WHERE [Name]=N'TypeCast';
+		UPDATE @vars
+		SET [Value]=@tableType
+		WHERE [Name]=N'TableType';
+		
+
+
+		UPDATE @vars
+		SET [Value]=@dtName
+		WHERE [Name]=N'DtName';
+		UPDATE @vars
+		SET [Value]=@readerName
+		WHERE [Name]=N'ReaderName';
+		UPDATE @vars
+		SET [Value]=@tvpName
+		WHERE [Name]=N'TvpName';
+		
 		
 		
 		INSERT INTO #Output ([Text])
@@ -299,7 +334,7 @@ BEGIN
 		FROM [dbo].[Template] t
 		CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
 		WHERE t.[LanguageId]=@langId AND t.[TypeId]=
-		CASE WHEN @isOutput=0 THEN @TT_WRAPPER_PARAM_PRE_EXEC_INPUT WHEN @treatOutputParamAsInputOutput=1 THEN @TT_WRAPPER_PARAM_PRE_EXEC_INPUT_OUTPUT ELSE @TT_WRAPPER_PARAM_PRE_EXEC_OUTPUT END
+		CASE WHEN @isTableType=1 THEN @TT_WRAPPER_PARAM_PRE_EXEC_TABLE_TYPE WHEN @isOutput=0 THEN @TT_WRAPPER_PARAM_PRE_EXEC_INPUT WHEN @treatOutputParamAsInputOutput=1 THEN @TT_WRAPPER_PARAM_PRE_EXEC_INPUT_OUTPUT ELSE @TT_WRAPPER_PARAM_PRE_EXEC_OUTPUT END
 		ORDER BY c.[Id];
 
 		SELECT @id=MIN([Id]) FROM #StoredProcParam WHERE [StoredProcId]=@spId AND [Id]>@id;

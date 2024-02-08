@@ -60,7 +60,7 @@ BEGIN
 	';
 	SET @tsql += N'EXEC ' + QUOTENAME(@spSchema) + N'.' + QUOTENAME(@spName)
 	
-	PRINT(@tsql);
+	--PRINT(@tsql);
 	
 	INSERT INTO #SingleStoredProcResultSet 	
 	EXEC sys.sp_describe_first_result_set @tsql, NULL, 1;
