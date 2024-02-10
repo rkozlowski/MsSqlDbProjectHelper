@@ -8,7 +8,7 @@ Helper database/tools for calling SQL Server stored procedures from C#
 
 ## Create the helper database
 1. Download the latest full deployment script from the release page:
-   https://github.com/rkozlowski/MsSqlDbProjectHelper/releases
+   [https://github.com/rkozlowski/MsSqlDbProjectHelper/releases/latest
 2. Create an empty database on your development SQL Server (SQL Server 2019 or newer)
 3. Open MsSqlProjectHelperDb_FullDeploy_v_0.4.sql script in SQL Server Management Studio
 4. Switch to SQLCMD Mode (Menu `Query->SQLCMD Mode`).
