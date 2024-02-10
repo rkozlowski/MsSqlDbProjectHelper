@@ -42,14 +42,14 @@ EXEC @return_value = [Project].[CreateProject]
                                           -- Mapping of stored procedure parameters to the enums:
                                           --   ExplicitOnly
                                           --     No mapping
-										  --   EnumName
+                                          --   EnumName
                                           --     Maps if the name of the input parameter
                                           --     matches the enum name
-										  --   EnumNameWithId
+                                          --   EnumNameWithId
                                           --     Maps if the name of the input parameter
                                           --     ends with "Id" suffix and matches the enum name
                                           --     after removing "Id" suffix
-										  --   EnumNameWithOrWithoutId
+                                          --   EnumNameWithOrWithoutId
                                           --     Maps if the name of the input parameter
                                           --     (with or without "Id" suffix)
                                           --     matches the enum name
@@ -57,9 +57,9 @@ EXEC @return_value = [Project].[CreateProject]
                                           -- columns to enums
     @languageOptions = ''                 -- Comma separated list of language options
                                           -- Possible options:
-										  --   GenerateStaticClass
-										  --   TreatOutputParamsAsInputOutput
-										  --   TargetClassicDotNet										  
+                                          --   GenerateStaticClass
+                                          --   TreatOutputParamsAsInputOutput
+                                          --   TargetClassicDotNet										  
 
 SELECT @errorMessage as N'@errorMessage';
 
