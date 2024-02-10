@@ -10,10 +10,9 @@
 	@generateAllStoredProcWrappers BIT = 1,
 	@generateAllEnumWrappers BIT = 1,
 	@language VARCHAR(200) = 'c#',
-	@paramEnumMappingId TINYINT = 1, 
-	@mapResultSetEnums BIT = 0, 
-	@generateStaticClass BIT = 0, 
-	@treatOutputParamAsInputOutput BIT = 0
+	@paramEnumMapping VARCHAR(100) = NULL, 
+	@mapResultSetEnums BIT = 0,
+	@languageOptions VARCHAR(1000) = NULL
 AS
 BEGIN
 	SET NOCOUNT ON;
@@ -25,6 +24,7 @@ BEGIN
 	DECLARE @RC_OK INT = 0;	
 	DECLARE @RC_UNKNOWN_CLASS_ACCESS INT = 1;
 	DECLARE @RC_UNKNOWN_LANG INT = 2;
+	DECLARE @RC_UNKNOWN_PEM INT = 3;
 	DECLARE @RC_DB_ERROR INT = 51;
 	DECLARE @RC_UNKNOWN_ERROR INT = 99;
 
@@ -46,6 +46,14 @@ BEGIN
 		RETURN @rc;
 	END
 
+	DECLARE @paramEnumMappingId TINYINT = (SELECT [Id] FROM [Enum].[ParamEnumMapping] WHERE [Name]=ISNULL(@paramEnumMapping, 'ExplicitOnly'));
+	IF @paramEnumMappingId IS NULL
+	BEGIN
+		SELECT @rc=@RC_UNKNOWN_PEM, @errorMessage='Invalid enum mapping for parameters: ' + ISNULL(@paramEnumMapping, '<NULL>');
+		RETURN @rc;
+	END
+
+	DECLARE @languageOptionsVal BIGINT = [Internal].[GetLanguageOptions](@languageId, @languageOptions);
 
 	BEGIN TRY
 		IF @tranCount = 0
@@ -55,10 +63,10 @@ BEGIN
 
 		INSERT INTO [dbo].[Project] 
 		([Name], [NamespaceName], [ClassName], [ClassAccessId], [EnumSchema], [StoredProcSchema], [GenerateAllStoredProcWrappers], [GenerateAllEnumWrappers], [LanguageId],
-		[ParamEnumMappingId], [MapResultSetEnums], [GenerateStaticClass], [TreatOutputParamAsInputOutput], [DefaultDatabase])
+		[ParamEnumMappingId], [MapResultSetEnums], [LanguageOptions], [DefaultDatabase])
 		VALUES
         (@name, @namespaceName, @className, @classAccessId, @enumSchema, @storedProcSchema, @generateAllStoredProcWrappers, @generateAllEnumWrappers, @languageId,
-		@paramEnumMappingId, @mapResultSetEnums, @generateStaticClass, @treatOutputParamAsInputOutput, @defaultDatabase);
+		@paramEnumMappingId, @mapResultSetEnums, @languageOptionsVal, @defaultDatabase);
 
 
 		IF @tranCount = 0    

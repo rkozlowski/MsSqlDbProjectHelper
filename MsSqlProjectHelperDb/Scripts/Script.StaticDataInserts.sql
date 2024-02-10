@@ -78,7 +78,7 @@ VALUES (4, N'EnumNameWithOrWithoutId');
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=1) 
 INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
-VALUES (1, N'Start');
+VALUES (1, N'StartComment');
 
 IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=2) 
 INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
@@ -107,10 +107,6 @@ VALUES (7, N'ResultTypeEnd');
 IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=8) 
 INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
 VALUES (8, N'ResultTypeProperty');
-
-IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=9) 
-INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
-VALUES (9, N'StaticStart');
 
 IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=10) 
 INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
@@ -143,10 +139,6 @@ VALUES (16, N'WrapperParamPreExecOutput');
 IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=17) 
 INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
 VALUES (17, N'WrapperExecRS');
-
-IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=18) 
-INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
-VALUES (18, N'WrapperParamPreExecInputOutput');
 
 IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=19) 
 INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
@@ -219,6 +211,26 @@ VALUES (35, N'TableTypeDtColumnMaxLen');
 IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=36) 
 INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
 VALUES (36, N'TableTypeDtRowNull');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=37) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (37, N'StartUsing');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=38) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (38, N'StartClass');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=39) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (39, N'StartCommentTool');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=40) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (40, N'StartCommentEnv');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=41) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (41, N'StartCommentEnd');
 
 
 -- table: [dbo].[DataTypeMap]
@@ -325,4 +337,4 @@ VALUES (1, N'sql_variant', N'object', N'SqlDbType.Variant', N'DbType.Object', 1,
 
 
 
--- Completion time: 2024-02-08T21:10:25.9416318+00:00
+-- Completion time: 2024-02-10T16:35:24.1220221+00:00

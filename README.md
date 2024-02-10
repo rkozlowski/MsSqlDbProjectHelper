@@ -38,21 +38,28 @@ EXEC @return_value = [Project].[CreateProject]
     @generateAllEnumWrappers = 1,         -- Flag specifying if enums should be created
                                           -- for all tables in the @enumSchema
     @language = N'c#',                    -- Only C# is supported
-    @paramEnumMappingId = 2,              -- Mapping of stored procedure parameters to the enums:
-                                          --   1 - No mapping
-                                          --   2 - Maps if the name of the input parameter
-                                          --       matches the enum name
-                                          --   3 - Maps if the name of the input parameter
-                                          --       ends with "Id" suffix and matches the enum name
-                                          --       after removing "Id" suffix
-                                          --   4 - Maps if the name of the input parameter
-                                          --       (with or without "Id" suffix)
-                                          --       matches the enum name
+    @paramEnumMapping = 'EnumNameWithOrWithoutId',
+                                          -- Mapping of stored procedure parameters to the enums:
+                                          --   ExplicitOnly
+                                          --     No mapping
+										  --   EnumName
+                                          --     Maps if the name of the input parameter
+                                          --     matches the enum name
+										  --   EnumNameWithId
+                                          --     Maps if the name of the input parameter
+                                          --     ends with "Id" suffix and matches the enum name
+                                          --     after removing "Id" suffix
+										  --   EnumNameWithOrWithoutId
+                                          --     Maps if the name of the input parameter
+                                          --     (with or without "Id" suffix)
+                                          --     matches the enum name
     @mapResultSetEnums = 1,               -- Flag specifying the mapping of the result set
                                           -- columns to enums
-    @generateStaticClass = 1,             -- Flag specifying generation of a static class
-    @treatOutputParamAsInputOutput = 0;   -- Flag specifying whether output parameters
-                                          -- should be treated as input/output
+    @languageOptions = ''                 -- Comma separated list of longuage options
+                                          -- Possible options:
+										  --   GenerateStaticClass
+										  --   TreatOutputParamsAsInputOutput
+										  --   TargetClassicDotNet										  
 
 SELECT @errorMessage as N'@errorMessage';
 

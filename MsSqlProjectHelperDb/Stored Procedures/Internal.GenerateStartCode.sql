@@ -15,17 +15,22 @@ BEGIN
 	DECLARE @RC_ERR_DB INT = 22;
 	DECLARE @RC_ERR_LANG INT = 23;
 
-	DECLARE @TT_START TINYINT = 1;
-	DECLARE @TT_STATIC_START TINYINT = 9;
+	DECLARE @TT_START_COMMENT TINYINT = 1;
+	DECLARE @TT_START_USING TINYINT = 37;
+	DECLARE @TT_START_CLASS TINYINT = 38;
+	DECLARE @TT_START_COMMENT_TOOL TINYINT = 39;
+	DECLARE @TT_START_COMMENT_ENV TINYINT = 40;
+	DECLARE @TT_START_COMMENT_END TINYINT = 41;
 
 	DECLARE @namespaceName NVARCHAR(100);
 	DECLARE @className NVARCHAR(100);
 	DECLARE @classAccess NVARCHAR(100);
 	DECLARE @projectName NVARCHAR(200);
 	DECLARE @genStaticClass BIT; 
+	DECLARE @langOptions BIGINT;
 	
 
-	SELECT @namespaceName = p.[NamespaceName], @className=p.[ClassName], @classAccess=ca.[Name], @projectName=p.[Name], @genStaticClass=p.[GenerateStaticClass]
+	SELECT @namespaceName = p.[NamespaceName], @className=p.[ClassName], @classAccess=ca.[Name], @projectName=p.[Name], @langOptions=p.[LanguageOptions]	
 	FROM [dbo].[Project] p
 	JOIN [Enum].[ClassAccess] ca ON p.[ClassAccessId]=ca.[Id]
 	WHERE p.[Id]=@projectId;
@@ -68,7 +73,42 @@ BEGIN
 	SELECT c.[Text]
 	FROM [dbo].[Template] t
 	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-	WHERE t.[LanguageId]=@langId AND t.[TypeId]=CASE WHEN @genStaticClass=1 THEN @TT_STATIC_START ELSE @TT_START END
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_START_COMMENT)
+	ORDER BY c.[Id];
+
+	INSERT INTO #Output ([Text])
+	SELECT c.[Text]
+	FROM [dbo].[Template] t
+	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_START_COMMENT_ENV)
+	ORDER BY c.[Id];
+
+	INSERT INTO #Output ([Text])
+	SELECT c.[Text]
+	FROM [dbo].[Template] t
+	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_START_COMMENT_TOOL)
+	ORDER BY c.[Id];
+
+	INSERT INTO #Output ([Text])
+	SELECT c.[Text]
+	FROM [dbo].[Template] t
+	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_START_COMMENT_END)
+	ORDER BY c.[Id];
+
+	INSERT INTO #Output ([Text])
+	SELECT c.[Text]
+	FROM [dbo].[Template] t
+	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_START_USING)
+	ORDER BY c.[Id];
+
+	INSERT INTO #Output ([Text])
+	SELECT c.[Text]
+	FROM [dbo].[Template] t
+	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_START_CLASS)
 	ORDER BY c.[Id];
 
 	EXEC(@query);

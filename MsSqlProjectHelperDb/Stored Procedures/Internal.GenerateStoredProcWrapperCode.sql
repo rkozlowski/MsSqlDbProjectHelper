@@ -27,7 +27,6 @@ BEGIN
 	DECLARE @TT_WRAPPER_PARAM_PRE_EXEC_INPUT TINYINT = 15;
 	DECLARE @TT_WRAPPER_PARAM_PRE_EXEC_OUTPUT TINYINT = 16;
 	DECLARE @TT_WRAPPER_EXEC_RS TINYINT = 17;
-	DECLARE @TT_WRAPPER_PARAM_PRE_EXEC_INPUT_OUTPUT TINYINT = 18;
 	DECLARE @TT_WRAPPER_PARAM_POST_EXEC TINYINT = 19;
 	DECLARE @TT_WRAPPER_START2 TINYINT = 20;
 	DECLARE @TT_WRAPPER_RETURN_PARAM TINYINT = 21;
@@ -40,6 +39,9 @@ BEGIN
 	DECLARE @C_SNAKE_CASE TINYINT = 3;
 	DECLARE @C_UNDERSCORE_CAMEL_CASE TINYINT = 4;
 	DECLARE @C_UPPER_SNAKE_CASE TINYINT = 5;
+
+	DECLARE @LO_GENERATE_STATIC_CLASS BIGINT = 1;
+	DECLARE @LO_TREAT_OUTPUT_PARAMS_AS_INPUT_OUTPUT BIGINT = 2;
 	
 	DECLARE @wrapperName NVARCHAR(200);
 	DECLARE @spSchema NVARCHAR(128);
@@ -49,11 +51,11 @@ BEGIN
 	
 
 	DECLARE @className NVARCHAR(100);
-	DECLARE @classAccess NVARCHAR(100);	
-	DECLARE @genStaticClass BIT; 
-	DECLARE @treatOutputParamAsInputOutput BIT;
+	DECLARE @classAccess NVARCHAR(100);		
+	DECLARE @langOptions BIGINT;
 
-	SELECT @className=p.[ClassName], @classAccess=ca.[Name], @genStaticClass=p.[GenerateStaticClass], @treatOutputParamAsInputOutput=p.[TreatOutputParamAsInputOutput]
+	SELECT @className=p.[ClassName], @classAccess=ca.[Name], @langOptions=p.[LanguageOptions]
+	--, @genStaticClass=p.[GenerateStaticClass], @treatOutputParamAsInputOutput=p.[TreatOutputParamAsInputOutput]
 	FROM [dbo].[Project] p
 	JOIN [Enum].[ClassAccess] ca ON p.[ClassAccessId]=ca.[Id]
 	WHERE p.[Id]=@projectId;
@@ -63,6 +65,9 @@ BEGIN
 		SELECT @rc = @RC_ERR_PROJECT, @errorMessage=N'Unknown project';
 		RETURN @rc;
 	END
+
+	--DECLARE @genStaticClass BIT; 
+	DECLARE @treatOutputParamAsInputOutput BIT = CASE WHEN (@langOptions & @LO_TREAT_OUTPUT_PARAMS_AS_INPUT_OUTPUT) = @langOptions THEN 1 ELSE 0 END;
 
 	SELECT @wrapperName=sp.[WrapperName], @spSchema=sp.[Schema], @spName=sp.[Name], @hasResultSet=sp.[HasResultSet], @resultType=[ResultType]
 	FROM #StoredProc sp 
@@ -83,13 +88,6 @@ BEGIN
 	END
 
 	DECLARE @methodAccess NVARCHAR(200) = N'public';
-
-	IF @genStaticClass=1
-	BEGIN
-		SET @methodAccess = @methodAccess + N' static';
-	END
-
-    -- DECLARE @query NVARCHAR(4000);
 
 	DECLARE @resultTypeSingle NVARCHAR(200) = @resultType;
 
@@ -112,14 +110,12 @@ BEGIN
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'Type', NULL);
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'TypeCast', NULL);
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'Name', NULL);
-	INSERT INTO @vars ([Name], [Value]) VALUES (N'ParamName', NULL);
-	INSERT INTO @vars ([Name], [Value]) VALUES (N'ParamOpt', NULL);	
+	INSERT INTO @vars ([Name], [Value]) VALUES (N'ParamName', NULL);	
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'DbType', NULL);
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'Size', NULL);
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'Precision', NULL);
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'Scale', NULL);
-	INSERT INTO @vars ([Name], [Value]) VALUES (N'Sep', N',');
-	INSERT INTO @vars ([Name], [Value]) VALUES (N'OutVarDecl', CASE WHEN @treatOutputParamAsInputOutput=1 THEN N'' ELSE N'var ' END);
+	INSERT INTO @vars ([Name], [Value]) VALUES (N'Sep', N',');	
 
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'DtName', NULL);
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'ReaderName', NULL);
@@ -136,7 +132,7 @@ BEGIN
 	SELECT c.[Text]
 	FROM [dbo].[Template] t
 	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-	WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_WRAPPER_START
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_WRAPPER_START)
 	ORDER BY c.[Id];
 
 	
@@ -144,8 +140,7 @@ BEGIN
 	DECLARE @name NVARCHAR(100);	
 	DECLARE @type NVARCHAR(100);
 	DECLARE @typeCast NVARCHAR(100);
-	DECLARE @paramName NVARCHAR(100);
-	DECLARE @paramOpt NVARCHAR(100);
+	DECLARE @paramName NVARCHAR(100);	
 	DECLARE @isOutput BIT;
 	DECLARE @dbType NVARCHAR(100);
 	DECLARE @size NVARCHAR(100);
@@ -157,10 +152,7 @@ BEGIN
 	WHILE @id IS NOT NULL
 	BEGIN		
 		SELECT @name=p.[Name], @type=ISNULL(@className + N'.' + e.[EnumName], dtm.[NativeType]) + CASE WHEN dtm.[IsNullable]=0 THEN N'?' ELSE N'' END, 
-			@paramName= [Internal].[GetCaseName](@C_PASCAL_CASE, p.[ParamName], NULL), 
-			@isOutput=p.[IsOutput],
-			@paramOpt = CASE WHEN p.[IsOutput]=0 THEN N'' WHEN @treatOutputParamAsInputOutput=1 THEN N'ref ' ELSE N'out ' END
-			--,[SizeNeeded]      ,[PrecisionNeeded]      ,[ScaleNeeded]
+			@paramName= [Internal].[GetCaseName](@C_PASCAL_CASE, p.[ParamName], NULL), @isOutput=p.[IsOutput]			
 		FROM #StoredProcParam p 
 		JOIN [dbo].[DataTypeMap] dtm ON dtm.[SqlType]=p.[SqlType]
 		LEFT JOIN #Enum e ON p.[EnumId]=e.[Id]
@@ -174,11 +166,7 @@ BEGIN
 		WHERE [Name]=N'Type';
 		UPDATE @vars
 		SET [Value]=@paramName
-		WHERE [Name]=N'ParamName';
-		UPDATE @vars
-		SET [Value]=@paramOpt
-		WHERE [Name]=N'ParamOpt';
-		
+		WHERE [Name]=N'ParamName';		
 		
 		IF @id=@lastId
 		BEGIN
@@ -191,7 +179,7 @@ BEGIN
 		SELECT c.[Text]
 		FROM [dbo].[Template] t
 		CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-		WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_WRAPPER_RETURN_PARAM_DEC
+		WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_WRAPPER_RETURN_PARAM_DEC)
 		ORDER BY c.[Id];
 
 		SELECT @id=MIN([Id]) FROM #StoredProcParam WHERE [StoredProcId]=@spId AND [IsOutput]=1 AND [Id]>@id;
@@ -201,7 +189,7 @@ BEGIN
 	SELECT c.[Text]
 	FROM [dbo].[Template] t
 	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-	WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_WRAPPER_START2
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_WRAPPER_START2)
 	ORDER BY c.[Id];
 
 	UPDATE @vars SET [Value]=',' WHERE [Name]=N'Sep';
@@ -213,7 +201,7 @@ BEGIN
 	WHILE @id IS NOT NULL
 	BEGIN		
 		SELECT @name=p.[Name], @type=ISNULL(ISNULL(N'IEnumerable<' + @className + N'.' + tt.[Name] + N'>', @className + N'.' + e.[EnumName]), dtm.[NativeType]) + CASE WHEN tt.[Id] IS NULL AND dtm.[IsNullable]=0 THEN N'?' ELSE N'' END, 
-			@paramName=p.[ParamName], @isOutput=p.[IsOutput], @paramOpt = N'', @isTableType=CASE WHEN tt.[Id] IS NULL THEN 0 ELSE 1 END
+			@paramName=p.[ParamName], @isOutput=p.[IsOutput], @isTableType=CASE WHEN tt.[Id] IS NULL THEN 0 ELSE 1 END
 		FROM #StoredProcParam p 
 		LEFT JOIN [dbo].[DataTypeMap] dtm ON dtm.[SqlType]=p.[SqlType]
 		LEFT JOIN #TableType tt ON p.[IsTableType]=1 AND p.[IsTypeUserDefined]=1 AND p.[SqlTypeSchema]=tt.[SqlTypeSchema] AND p.[SqlType]=tt.[SqlType]
@@ -229,11 +217,7 @@ BEGIN
 		UPDATE @vars
 		SET [Value]=@paramName
 		WHERE [Name]=N'ParamName';
-		UPDATE @vars
-		SET [Value]=@paramOpt
-		WHERE [Name]=N'ParamOpt';
-		
-		
+				
 		IF @id=@lastId
 		BEGIN
 			UPDATE @vars
@@ -245,7 +229,7 @@ BEGIN
 		SELECT c.[Text]
 		FROM [dbo].[Template] t
 		CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-		WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_WRAPPER_PARAM
+		WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_WRAPPER_PARAM)
 		ORDER BY c.[Id];
 
 		SELECT @id=MIN([Id]) FROM #StoredProcParam WHERE [StoredProcId]=@spId AND (@treatOutputParamAsInputOutput=1 OR [IsOutput]=0) AND [Id]>@id;
@@ -255,7 +239,7 @@ BEGIN
 	SELECT c.[Text]
 	FROM [dbo].[Template] t
 	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-	WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_WRAPPER_PREP
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_WRAPPER_PREP)
 	ORDER BY c.[Id];
 
 	DECLARE @dtName NVARCHAR(200);
@@ -266,8 +250,7 @@ BEGIN
 	SELECT @id=MIN([Id]) FROM #StoredProcParam WHERE [StoredProcId]=@spId;
 	WHILE @id IS NOT NULL
 	BEGIN		
-		SELECT @name=p.[Name], @type=dtm.[NativeType] + CASE WHEN dtm.[IsNullable]=0 THEN N'?' ELSE N'' END, @paramName=p.[ParamName], @isOutput=p.[IsOutput],
-			@paramOpt = CASE WHEN p.[IsOutput]=0 THEN N'' WHEN @treatOutputParamAsInputOutput=1 THEN N'ref ' ELSE N'out ' END,
+		SELECT @name=p.[Name], @type=dtm.[NativeType] + CASE WHEN dtm.[IsNullable]=0 THEN N'?' ELSE N'' END, @paramName=p.[ParamName], @isOutput=p.[IsOutput],			
 			@dbType=dtm.[DbType],
 			@size=CASE WHEN dtm.[SizeNeeded]=1 THEN LOWER(p.[MaxLen]) ELSE 'null' END,
 			@precision=CASE WHEN dtm.[PrecisionNeeded]=1 THEN LOWER(p.[Precision]) ELSE 'null' END,
@@ -292,10 +275,7 @@ BEGIN
 		WHERE [Name]=N'Type';
 		UPDATE @vars
 		SET [Value]=@paramName
-		WHERE [Name]=N'ParamName';
-		UPDATE @vars
-		SET [Value]=@paramOpt
-		WHERE [Name]=N'ParamOpt';
+		WHERE [Name]=N'ParamName';		
 		UPDATE @vars
 		SET [Value]=@dbType
 		WHERE [Name]=N'DbType';
@@ -333,8 +313,8 @@ BEGIN
 		SELECT c.[Text]
 		FROM [dbo].[Template] t
 		CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-		WHERE t.[LanguageId]=@langId AND t.[TypeId]=
-		CASE WHEN @isTableType=1 THEN @TT_WRAPPER_PARAM_PRE_EXEC_TABLE_TYPE WHEN @isOutput=0 THEN @TT_WRAPPER_PARAM_PRE_EXEC_INPUT WHEN @treatOutputParamAsInputOutput=1 THEN @TT_WRAPPER_PARAM_PRE_EXEC_INPUT_OUTPUT ELSE @TT_WRAPPER_PARAM_PRE_EXEC_OUTPUT END
+		WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, 
+			CASE WHEN @isTableType=1 THEN @TT_WRAPPER_PARAM_PRE_EXEC_TABLE_TYPE WHEN @isOutput=0 THEN @TT_WRAPPER_PARAM_PRE_EXEC_INPUT ELSE @TT_WRAPPER_PARAM_PRE_EXEC_OUTPUT END)
 		ORDER BY c.[Id];
 
 		SELECT @id=MIN([Id]) FROM #StoredProcParam WHERE [StoredProcId]=@spId AND [Id]>@id;
@@ -344,15 +324,14 @@ BEGIN
 	SELECT c.[Text]
 	FROM [dbo].[Template] t
 	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-	WHERE t.[LanguageId]=@langId AND t.[TypeId]=CASE WHEN @hasResultSet=1 THEN @TT_WRAPPER_EXEC_RS ELSE @TT_WRAPPER_EXEC END
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, CASE WHEN @hasResultSet=1 THEN @TT_WRAPPER_EXEC_RS ELSE @TT_WRAPPER_EXEC END)
 	ORDER BY c.[Id];
 
 	
 	SELECT @id=MIN([Id]) FROM #StoredProcParam WHERE [StoredProcId]=@spId AND [IsOutput]=1;
 	WHILE @id IS NOT NULL
 	BEGIN		
-		SELECT @name=p.[Name], @type=dtm.[NativeType] + CASE WHEN dtm.[IsNullable]=0 THEN N'?' ELSE N'' END, @paramName=p.[ParamName], @isOutput=p.[IsOutput],
-			@paramOpt = CASE WHEN p.[IsOutput]=0 THEN N'' WHEN @treatOutputParamAsInputOutput=1 THEN N'ref ' ELSE N'out ' END,
+		SELECT @name=p.[Name], @type=dtm.[NativeType] + CASE WHEN dtm.[IsNullable]=0 THEN N'?' ELSE N'' END, @paramName=p.[ParamName], @isOutput=p.[IsOutput],			
 			@dbType=dtm.[DbType],
 			@size=CASE WHEN dtm.[SizeNeeded]=1 THEN LOWER(p.[MaxLen]) ELSE 'null' END,
 			@precision=CASE WHEN dtm.[PrecisionNeeded]=1 THEN LOWER(p.[Precision]) ELSE 'null' END,
@@ -372,10 +351,7 @@ BEGIN
 		WHERE [Name]=N'Type';
 		UPDATE @vars
 		SET [Value]=@paramName
-		WHERE [Name]=N'ParamName';
-		UPDATE @vars
-		SET [Value]=@paramOpt
-		WHERE [Name]=N'ParamOpt';
+		WHERE [Name]=N'ParamName';		
 		UPDATE @vars
 		SET [Value]=@dbType
 		WHERE [Name]=N'DbType';
@@ -396,7 +372,7 @@ BEGIN
 		SELECT c.[Text]
 		FROM [dbo].[Template] t
 		CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-		WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_WRAPPER_PARAM_POST_EXEC
+		WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_WRAPPER_PARAM_POST_EXEC)
 		ORDER BY c.[Id];
 
 		SELECT @id=MIN([Id]) FROM #StoredProcParam WHERE [StoredProcId]=@spId AND [IsOutput]=1 AND [Id]>@id;
@@ -411,16 +387,15 @@ BEGIN
 	SELECT c.[Text]
 	FROM [dbo].[Template] t
 	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-	WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_WRAPPER_END
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_WRAPPER_END)
 	ORDER BY c.[Id];
 
 	
 
 	WHILE @id IS NOT NULL
 	BEGIN		
-		SELECT @name=p.[Name], @type=ISNULL(@className + N'.' + e.[EnumName], dtm.[NativeType]) + CASE WHEN dtm.[IsNullable]=0 THEN N'?' ELSE N'' END, @paramName=p.[ParamName], @isOutput=p.[IsOutput],
-			@paramOpt = CASE WHEN p.[IsOutput]=0 THEN N'' WHEN @treatOutputParamAsInputOutput=1 THEN N'ref ' ELSE N'out ' END
-			--,[SizeNeeded]      ,[PrecisionNeeded]      ,[ScaleNeeded]
+		SELECT @name=p.[Name], @type=ISNULL(@className + N'.' + e.[EnumName], dtm.[NativeType]) + CASE WHEN dtm.[IsNullable]=0 THEN N'?' ELSE N'' END, 
+		@paramName=p.[ParamName], @isOutput=p.[IsOutput]			
 		FROM #StoredProcParam p 
 		JOIN [dbo].[DataTypeMap] dtm ON dtm.[SqlType]=p.[SqlType]
 		LEFT JOIN #Enum e ON p.[EnumId]=e.[Id]
@@ -434,10 +409,7 @@ BEGIN
 		WHERE [Name]=N'Type';
 		UPDATE @vars
 		SET [Value]=@paramName
-		WHERE [Name]=N'ParamName';
-		UPDATE @vars
-		SET [Value]=@paramOpt
-		WHERE [Name]=N'ParamOpt';
+		WHERE [Name]=N'ParamName';		
 		
 		
 		IF @id=@lastId
@@ -451,7 +423,7 @@ BEGIN
 		SELECT c.[Text]
 		FROM [dbo].[Template] t
 		CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-		WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_WRAPPER_RETURN_PARAM
+		WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_WRAPPER_RETURN_PARAM)
 		ORDER BY c.[Id];
 
 		SELECT @id=MIN([Id]) FROM #StoredProcParam WHERE [StoredProcId]=@spId AND [IsOutput]=1 AND [Id]>@id;
@@ -461,6 +433,6 @@ BEGIN
 	SELECT c.[Text]
 	FROM [dbo].[Template] t
 	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-	WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_WRAPPER_END2
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_WRAPPER_END2)
 	ORDER BY c.[Id];
 END

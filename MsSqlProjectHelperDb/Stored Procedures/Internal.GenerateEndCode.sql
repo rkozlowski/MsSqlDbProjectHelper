@@ -21,9 +21,9 @@ BEGIN
 	DECLARE @namespaceName NVARCHAR(100);
 	DECLARE @className NVARCHAR(100);
 	DECLARE @classAccess NVARCHAR(100);
-	
+	DECLARE @langOptions BIGINT;
 
-	SELECT @namespaceName = p.[NamespaceName], @className=p.[ClassName], @classAccess=ca.[Name]
+	SELECT @namespaceName = p.[NamespaceName], @className=p.[ClassName], @classAccess=ca.[Name], @langOptions=p.[LanguageOptions]
 	FROM [dbo].[Project] p
 	JOIN [Enum].[ClassAccess] ca ON p.[ClassAccessId]=ca.[Id]
 	WHERE p.[Id]=@projectId;
@@ -54,7 +54,7 @@ BEGIN
 	SELECT c.[Text]
 	FROM [dbo].[Template] t
 	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-	WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_END
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_END)
 	ORDER BY c.[Id];
 
 	EXEC(@query);

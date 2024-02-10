@@ -21,6 +21,21 @@ BEGIN
 	DECLARE @TT_ENUM_END TINYINT = 4;
 	DECLARE @TT_ENUM_ENTRY TINYINT = 5;
 
+	DECLARE @className NVARCHAR(100);	
+	DECLARE @langOptions BIGINT;
+	
+
+	SELECT @className=p.[ClassName], @langOptions=p.[LanguageOptions]	
+	FROM [dbo].[Project] p
+	JOIN [Enum].[ClassAccess] ca ON p.[ClassAccessId]=ca.[Id]
+	WHERE p.[Id]=@projectId;
+
+	IF @className IS NULL
+	BEGIN
+		SELECT @rc = @RC_ERR_PROJECT, @errorMessage=N'Unknown project';
+		RETURN @rc;
+	END
+
 	DECLARE @enumName NVARCHAR(100);
 	DECLARE @enumSchema NVARCHAR(128);
 	DECLARE @enumTable NVARCHAR(128);
@@ -61,7 +76,7 @@ BEGIN
 	SELECT c.[Text]
 	FROM [dbo].[Template] t
 	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-	WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_ENUM_START
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_ENUM_START)
 	ORDER BY c.[Id];
 
 	DECLARE @id INT = (SELECT MIN([Id]) FROM #EnumVal WHERE [EnumId]=@enumId);
@@ -90,7 +105,7 @@ BEGIN
 		SELECT c.[Text]
 		FROM [dbo].[Template] t
 		CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-		WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_ENUM_ENTRY
+		WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_ENUM_ENTRY)
 		ORDER BY c.[Id];
 
 		SELECT @id=MIN([Id]) FROM #EnumVal WHERE [EnumId]=@enumId AND [Id]>@id;
@@ -100,7 +115,7 @@ BEGIN
 	SELECT c.[Text]
 	FROM [dbo].[Template] t
 	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-	WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_ENUM_END
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_ENUM_END)
 	ORDER BY c.[Id];
 
 	EXEC(@query);

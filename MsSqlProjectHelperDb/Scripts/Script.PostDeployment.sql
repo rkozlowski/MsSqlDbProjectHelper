@@ -11,5 +11,6 @@ Post-Deployment Script Template
 */
 
 :r .\Script.StaticDataInserts.sql
+:r .\Script.LanguageOptions.sql
 :r .\Script.Templates.sql
 :r .\Script.Version.sql

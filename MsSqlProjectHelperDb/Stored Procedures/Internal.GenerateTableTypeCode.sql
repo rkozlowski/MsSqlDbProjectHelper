@@ -37,8 +37,9 @@ BEGIN
 	DECLARE @ttName NVARCHAR(128);
 
 	DECLARE @className NVARCHAR(100);
+	DECLARE @langOptions BIGINT;
 	
-	SELECT @className=p.[ClassName]
+	SELECT @className=p.[ClassName], @langOptions=p.[LanguageOptions]
 	FROM [dbo].[Project] p
 	JOIN [Enum].[ClassAccess] ca ON p.[ClassAccessId]=ca.[Id]
 	WHERE p.[Id]=@projectId;
@@ -91,7 +92,7 @@ BEGIN
 	SELECT c.[Text]
 	FROM [dbo].[Template] t
 	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-	WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_TABLE_TYPE_START
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_TABLE_TYPE_START)
 	ORDER BY c.[Id];
 
 	DECLARE @id INT = (SELECT MIN([Id]) FROM #TableTypeColumn WHERE [TableTypeId]=@ttId);
@@ -100,6 +101,7 @@ BEGIN
 	DECLARE @columnName NVARCHAR(128);
 	DECLARE @type NVARCHAR(128);
 	DECLARE @baseType NVARCHAR(128);
+
 
 	WHILE @id IS NOT NULL
 	BEGIN		
@@ -128,7 +130,7 @@ BEGIN
 		SELECT c.[Text]
 		FROM [dbo].[Template] t
 		CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-		WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_TABLE_TYPE_PROPERTY
+		WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_TABLE_TYPE_PROPERTY)
 		ORDER BY c.[Id];
 
 		SELECT @id=MIN([Id]) FROM #TableTypeColumn WHERE [TableTypeId]=@ttId AND [Id]>@id;
@@ -138,7 +140,7 @@ BEGIN
 	SELECT c.[Text]
 	FROM [dbo].[Template] t
 	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-	WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_TABLE_TYPE_DT_START
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_TABLE_TYPE_DT_START)
 	ORDER BY c.[Id];
 
 	SELECT @id=MIN([Id]) FROM #TableTypeColumn WHERE [TableTypeId]=@ttId;
@@ -188,7 +190,7 @@ BEGIN
 		SELECT c.[Text]
 		FROM [dbo].[Template] t
 		CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-		WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_TABLE_TYPE_DT_COLUMN
+		WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_TABLE_TYPE_DT_COLUMN)
 		ORDER BY c.[Id];
 
 		IF @maxLength IS NOT NULL
@@ -198,7 +200,7 @@ BEGIN
 			SELECT c.[Text]
 			FROM [dbo].[Template] t
 			CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-			WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_TABLE_TYPE_DT_COLUMN_MAX_LEN
+			WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_TABLE_TYPE_DT_COLUMN_MAX_LEN)
 			ORDER BY c.[Id];
 
 		END
@@ -207,7 +209,7 @@ BEGIN
 		SELECT c.[Text]
 		FROM [dbo].[Template] t
 		CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-		WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_TABLE_TYPE_DT_COLUMN_ADD
+		WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_TABLE_TYPE_DT_COLUMN_ADD)
 		ORDER BY c.[Id];
 
 		SELECT @id=MIN([Id]) FROM #TableTypeColumn WHERE [TableTypeId]=@ttId AND [Id]>@id;
@@ -217,7 +219,7 @@ BEGIN
 	SELECT c.[Text]
 	FROM [dbo].[Template] t
 	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-	WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_TABLE_TYPE_DT_ROWS_START
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_TABLE_TYPE_DT_ROWS_START)
 	ORDER BY c.[Id];
 
 	SELECT @id=MIN([Id]) FROM #TableTypeColumn WHERE [TableTypeId]=@ttId;
@@ -271,7 +273,7 @@ BEGIN
 		SELECT c.[Text]
 		FROM [dbo].[Template] t
 		CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-		WHERE t.[LanguageId]=@langId AND t.[TypeId]=CASE WHEN @allowNull=1 THEN @TT_TABLE_TYPE_DT_ROW_NULL ELSE @TT_TABLE_TYPE_DT_ROW END
+		WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, CASE WHEN @allowNull=1 THEN @TT_TABLE_TYPE_DT_ROW_NULL ELSE @TT_TABLE_TYPE_DT_ROW END)
 		ORDER BY c.[Id];		
 
 		SELECT @id=MIN([Id]) FROM #TableTypeColumn WHERE [TableTypeId]=@ttId AND [Id]>@id;
@@ -281,21 +283,21 @@ BEGIN
 	SELECT c.[Text]
 	FROM [dbo].[Template] t
 	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-	WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_TABLE_TYPE_DT_ROWS_END
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_TABLE_TYPE_DT_ROWS_END)
 	ORDER BY c.[Id];
 
 	INSERT INTO #Output ([Text])
 	SELECT c.[Text]
 	FROM [dbo].[Template] t
 	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-	WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_TABLE_TYPE_DT_END
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_TABLE_TYPE_DT_END)
 	ORDER BY c.[Id];
 
 	INSERT INTO #Output ([Text])
 	SELECT c.[Text]
 	FROM [dbo].[Template] t
 	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-	WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_TABLE_TYPE_END
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_TABLE_TYPE_END)
 	ORDER BY c.[Id];
 
 	

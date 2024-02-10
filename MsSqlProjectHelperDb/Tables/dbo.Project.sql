@@ -9,6 +9,7 @@
     [GenerateAllStoredProcWrappers] BIT            CONSTRAINT [DF_Project_GenStoredProcWrappersForAll] DEFAULT ((1)) NOT NULL,
     [GenerateAllEnumWrappers]       BIT            CONSTRAINT [DF_Project_GenEnumWrappersForAllTablesInEnumSchema] DEFAULT ((1)) NOT NULL,
     [LanguageId]                    TINYINT        NOT NULL,
+    [LanguageOptions]               BIGINT         CONSTRAINT [DF_Project_LanguageOptions] DEFAULT ((0)) NOT NULL,
     [ParamEnumMappingId]            TINYINT        CONSTRAINT [DF_Project_ParamEnumMapping] DEFAULT ((1)) NOT NULL,
     [MapResultSetEnums]             BIT            CONSTRAINT [DF_Project_MapResultSetEnums] DEFAULT ((0)) NOT NULL,
     [GenerateStaticClass]           BIT            CONSTRAINT [DF_Project_GenerateStaticClass] DEFAULT ((0)) NOT NULL,

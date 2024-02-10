@@ -28,8 +28,9 @@ BEGIN
 	DECLARE @spName NVARCHAR(128);
 
 	DECLARE @className NVARCHAR(100);
-	
-	SELECT @className=p.[ClassName]
+	DECLARE @langOptions BIGINT;
+
+	SELECT @className=p.[ClassName], @langOptions=p.[LanguageOptions]
 	FROM [dbo].[Project] p
 	JOIN [Enum].[ClassAccess] ca ON p.[ClassAccessId]=ca.[Id]
 	WHERE p.[Id]=@projectId;
@@ -78,7 +79,7 @@ BEGIN
 	SELECT c.[Text]
 	FROM [dbo].[Template] t
 	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-	WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_RESULT_TYPE_START
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_RESULT_TYPE_START)
 	ORDER BY c.[Id];
 
 	DECLARE @id INT = (SELECT MIN([Id]) FROM #StoredProcResultSet WHERE [StoredProcId]=@spId);
@@ -112,7 +113,7 @@ BEGIN
 		SELECT c.[Text]
 		FROM [dbo].[Template] t
 		CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-		WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_RESULT_TYPE_PROPERTY
+		WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_RESULT_TYPE_PROPERTY)
 		ORDER BY c.[Id];
 
 		SELECT @id=MIN([Id]) FROM #StoredProcResultSet WHERE [StoredProcId]=@spId AND [Id]>@id;
@@ -122,7 +123,7 @@ BEGIN
 	SELECT c.[Text]
 	FROM [dbo].[Template] t
 	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-	WHERE t.[LanguageId]=@langId AND t.[TypeId]=@TT_RESULT_TYPE_END
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_RESULT_TYPE_END)
 	ORDER BY c.[Id];
 
 	
