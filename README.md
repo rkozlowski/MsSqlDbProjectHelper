@@ -55,11 +55,11 @@ EXEC @return_value = [Project].[CreateProject]
                                           --     matches the enum name
     @mapResultSetEnums = 1,               -- Flag specifying the mapping of the result set
                                           -- columns to enums
-    @languageOptions = ''                 -- Comma separated list of language options
+    @languageOptions = '';                -- Comma separated list of language options
                                           -- Possible options:
                                           --   GenerateStaticClass
                                           --   TreatOutputParamsAsInputOutput
-                                          --   TargetClassicDotNet										  
+                                          --   TargetClassicDotNet
 
 SELECT @errorMessage as N'@errorMessage';
 
