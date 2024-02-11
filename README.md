@@ -9,8 +9,8 @@ Helper database/tools for calling SQL Server stored procedures from C#
 ## Create the helper database
 1. Download the latest full deployment script from the release page:
    [https://github.com/rkozlowski/MsSqlDbProjectHelper/releases/latest
-2. Create an empty database on your development SQL Server (SQL Server 2019 or newer)
-3. Open MsSqlProjectHelperDb_FullDeploy_v_0.4.sql script in SQL Server Management Studio
+2. Create an empty database on your development SQL Server (SQL Server 2019 or newer).
+3. Open MsSqlProjectHelperDb_FullDeploy_v_0.5.sql script in SQL Server Management Studio.
 4. Switch to SQLCMD Mode (Menu `Query->SQLCMD Mode`).
 5. Change the database name in line 16 (`:setvar DatabaseName "MsSqlProjectHelperDb"`) to the name of your new database created in point 2.
 6. Execute the script.
@@ -60,6 +60,7 @@ EXEC @return_value = [Project].[CreateProject]
                                           --   GenerateStaticClass
                                           --   TreatOutputParamsAsInputOutput
                                           --   TargetClassicDotNet
+                                          --   UseSyncWrappers
 
 SELECT @errorMessage as N'@errorMessage';
 
@@ -72,6 +73,8 @@ GO
 > [!NOTE]
 > Generated code depends on the great Dapper library, so please add it to your project using Nuget:
 > https://www.nuget.org/packages/Dapper/
+> Also, for new .Net versions (.Net Core, .Net 6+) you need to add Microsoft.Data.SqlClient package:
+> https://www.nuget.org/packages/Microsoft.Data.SqlClient/
 - The following code can be used to generate C# code. Please modify it to suit your needs.
 ```TSQL
 SET NOCOUNT ON;
