@@ -1,5 +1,3 @@
-﻿CREATE SCHEMA [Enum]
+﻿CREATE SCHEMA [Flag]
     AUTHORIZATION [dbo];
-
-
 

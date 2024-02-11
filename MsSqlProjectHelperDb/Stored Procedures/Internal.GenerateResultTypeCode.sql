@@ -22,6 +22,16 @@ BEGIN
 	DECLARE @TT_RESULT_TYPE_END TINYINT = 7;
 	DECLARE @TT_RESULT_TYPE_PROPERTY TINYINT = 8;
 
+	DECLARE @NT_CLASS TINYINT = 1;
+	DECLARE @NT_METHOD TINYINT = 2;
+	DECLARE @NT_PROPERTY TINYINT = 3;
+	DECLARE @NT_FIELD TINYINT = 4;
+	DECLARE @NT_PARAMETER TINYINT = 5;
+	DECLARE @NT_LOCAL_VARIABLE TINYINT = 6;
+	DECLARE @NT_TUPLE_FIELD TINYINT = 7;
+	DECLARE @NT_ENUM TINYINT = 8;
+	DECLARE @NT_ENUM_MEMBER TINYINT = 9;
+
 	DECLARE @spId INT;
 	DECLARE @typeName NVARCHAR(200);
 	DECLARE @spSchema NVARCHAR(128);
@@ -71,6 +81,7 @@ BEGIN
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'PropertyAccess', N'public');
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'Type', NULL);
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'Name', NULL);
+	INSERT INTO @vars ([Name], [Value]) VALUES (N'ColumnName', NULL);
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'Sep', N',');
 	
 
@@ -84,12 +95,14 @@ BEGIN
 
 	DECLARE @id INT = (SELECT MIN([Id]) FROM #StoredProcResultSet WHERE [StoredProcId]=@spId);
 	DECLARE @lastId INT = (SELECT MAX([Id]) FROM #StoredProcResultSet WHERE [StoredProcId]=@spId);
-	DECLARE @name NVARCHAR(100);
+	DECLARE @name NVARCHAR(128);
+	DECLARE @columnName NVARCHAR(128);
 	DECLARE @type NVARCHAR(100);
 
 	WHILE @id IS NOT NULL
 	BEGIN		
-		SELECT @name=rs.[Name], @type=ISNULL(@className + N'.' + e.[EnumName], dtm.[NativeType]) + CASE WHEN dtm.[IsNullable]=0 THEN N'?' ELSE N'' END
+		SELECT @columnName=[Internal].[EscapeString](@langId, rs.[Name]), @name=[Internal].[GetName](@projectId, @NT_PROPERTY, rs.[Name], NULL), 
+			@type=ISNULL(@className + N'.' + e.[EnumName], dtm.[NativeType]) + CASE WHEN dtm.[IsNullable]=0 THEN N'?' ELSE N'' END
 		FROM #StoredProcResultSet rs 
 		JOIN [dbo].[DataTypeMap] dtm ON dtm.[SqlType]=rs.[SqlType]
 		LEFT JOIN #Enum e ON rs.[EnumId]=e.[Id]
@@ -98,6 +111,9 @@ BEGIN
 		UPDATE @vars
 		SET [Value]=@name
 		WHERE [Name]=N'Name';
+		UPDATE @vars
+		SET [Value]=@columnName
+		WHERE [Name]=N'ColumnName';
 		UPDATE @vars
 		SET [Value]=@type
 		WHERE [Name]=N'Type';

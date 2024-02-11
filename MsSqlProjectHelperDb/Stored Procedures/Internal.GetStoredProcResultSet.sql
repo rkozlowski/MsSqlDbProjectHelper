@@ -65,8 +65,6 @@ BEGIN
 	INSERT INTO #SingleStoredProcResultSet 	
 	EXEC sys.sp_describe_first_result_set @tsql, NULL, 1;
 
-	--SELECT * FROM  #SingleStoredProcResultSet;
-
 	/*
 	 * Join is with local sys.types view, so we can only use system types, not user defined types.	 
 	 */

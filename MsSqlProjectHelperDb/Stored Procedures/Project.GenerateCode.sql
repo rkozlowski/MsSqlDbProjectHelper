@@ -2,7 +2,7 @@
 	@projectName NVARCHAR(200),
 	@errorMessage NVARCHAR(2000) OUTPUT,
 	@databaseName NVARCHAR(128) = NULL,	
-	@options INT = NULL
+	@codeGenOptions VARCHAR(1000) = NULL
 AS
 BEGIN
 	SET NOCOUNT ON;
@@ -17,13 +17,10 @@ BEGIN
 
 	DROP TABLE IF EXISTS #Output;
 
-	DECLARE @OPT_GEN_ENUMS INT = 1;
-	DECLARE @OPT_GEN_RESULT_TYPES INT = 2;
-	DECLARE @OPT_GEN_TVP_TYPES INT = 4;
-	DECLARE @OPT_GEN_SP_WRAPPERS INT = 8;
-
-	DECLARE @OPT_GEN_ALL INT = (@OPT_GEN_ENUMS | @OPT_GEN_RESULT_TYPES | @OPT_GEN_TVP_TYPES | @OPT_GEN_SP_WRAPPERS);
-
+	DECLARE @OPT_GEN_ENUMS SMALLINT = 1;
+	DECLARE @OPT_GEN_RESULT_TYPES SMALLINT = 2;
+	DECLARE @OPT_GEN_TVP_TYPES SMALLINT = 4;
+	DECLARE @OPT_GEN_SP_WRAPPERS SMALLINT = 8;
 
 	DECLARE @C_PASCAL_CASE TINYINT = 1;
 	DECLARE @C_CAMEL_CASE TINYINT = 2;
@@ -31,9 +28,21 @@ BEGIN
 	DECLARE @C_UNDERSCORE_CAMEL_CASE TINYINT = 4;
 	DECLARE @C_UPPER_SNAKE_CASE TINYINT = 5;
 
+	DECLARE @NT_CLASS TINYINT = 1;
+	DECLARE @NT_METHOD TINYINT = 2;
+	DECLARE @NT_PROPERTY TINYINT = 3;
+	DECLARE @NT_FIELD TINYINT = 4;
+	DECLARE @NT_PARAMETER TINYINT = 5;
+	DECLARE @NT_LOCAL_VARIABLE TINYINT = 6;
+	DECLARE @NT_TUPLE_FIELD TINYINT = 7;
+	DECLARE @NT_ENUM TINYINT = 8;
+	DECLARE @NT_ENUM_MEMBER TINYINT = 9;
+
+	DECLARE @options SMALLINT = [Internal].[GetCodeGenerationOptions](@codeGenOptions);
+
 	IF ISNULL(@options, 0)=0 
 	BEGIN
-		SET @options = @OPT_GEN_ALL;
+		SET @options = [Internal].[GetCodeGenerationOptions]('GenAll');
 	END
 
 	DECLARE @projectId SMALLINT;
@@ -230,7 +239,7 @@ BEGIN
 		RETURN @rc;
 	END
 
-	UPDATE #Enum SET [EnumName]=[Internal].[GetName](@langId, [Table], [Schema]);
+	UPDATE #Enum SET [EnumName]=[Internal].[GetName](@projectId, @NT_ENUM, [Table], [Schema]);
 
 	DECLARE @id INT = (SELECT MIN([Id]) FROM #Enum);
 	
@@ -254,7 +263,7 @@ BEGIN
 		SELECT @id = MIN([Id]) FROM #Enum WHERE [Id]>@id;
 	END
 
-	UPDATE #EnumVal SET [Name]=[Internal].[GetName](@langId, [Name], NULL);
+	UPDATE #EnumVal SET [Name]=[Internal].[GetName](@projectId, @NT_ENUM_MEMBER, [Name], NULL);
 
 	/*
 	SELECT e.[Schema], e.[Table], e.[EnumName], fk.*
@@ -291,10 +300,10 @@ BEGIN
 		SELECT @id = MIN([Id]) FROM #StoredProc WHERE [Id]>@id;
 	END
 
-	UPDATE #StoredProc SET [WrapperName]=[Internal].[GetName](@langId, [Name], [Schema]);
+	UPDATE #StoredProc SET [WrapperName]=[Internal].[GetName](@projectId, @NT_METHOD, [Name], [Schema]);
 
 	UPDATE sp
-	SET sp.[HasResultSet]=1, sp.[ResultType]=sp.[WrapperName] + N'Result'
+	SET sp.[HasResultSet]=1, sp.[ResultType]=[Internal].[GetName](@projectId, @NT_CLASS, sp.[WrapperName] + N'Result', NULL)
 	FROM #StoredProc sp
 	WHERE EXISTS (SELECT 1 FROM #StoredProcResultSet rs WHERE rs.[StoredProcId]=sp.[Id]);
 	
@@ -303,10 +312,10 @@ BEGIN
 	FROM #StoredProc
 	WHERE [HasResultSet]=1;
 
-	UPDATE #StoredProcParam SET [ParamName]=[Internal].[GetName](@langId, [Name], NULL);
+	UPDATE #StoredProcParam SET [ParamName]=[Internal].[GetName](@projectId, @NT_PARAMETER, [Name], NULL);
 
 	INSERT INTO #TableType ([SqlType], [SqlTypeSchema], [Name])
-	SELECT DISTINCT spp.[SqlType], spp.[SqlTypeSchema], [Internal].[GetName](@langId, spp.[SqlType], spp.[SqlTypeSchema])
+	SELECT DISTINCT spp.[SqlType], spp.[SqlTypeSchema], [Internal].[GetName](@projectId, @NT_CLASS, spp.[SqlType], spp.[SqlTypeSchema])
 	FROM #StoredProcParam spp
 	WHERE spp.[IsTypeUserDefined]=1 AND spp.IsTableType=1;
 
@@ -325,7 +334,7 @@ BEGIN
 	END
 
 	UPDATE #TableTypeColumn
-	SET [PropertyName]=[Internal].[GetCaseName](@C_PASCAL_CASE, [Name], NULL);
+	SET [PropertyName]=[Internal].[GetName](@projectId, @NT_PROPERTY, [Name], NULL);
 
 	--SELECT * FROM #Enum ORDER BY [Id];
 	--SELECT * FROM #EnumVal ORDER BY [Id];

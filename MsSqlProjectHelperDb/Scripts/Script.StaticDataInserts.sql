@@ -232,6 +232,80 @@ IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=41)
 INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
 VALUES (41, N'StartCommentEnd');
 
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=42) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (42, N'StaticCtorEnd');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=43) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (43, N'RsMappingSetup');
+
+
+--table [Enum].[NameType]
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS (SELECT 1 FROM [Enum].[NameType] WHERE [Id]=1) 
+INSERT INTO [Enum].[NameType] ([Id], [Name]) 
+VALUES (1, N'Class');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[NameType] WHERE [Id]=2) 
+INSERT INTO [Enum].[NameType] ([Id], [Name]) 
+VALUES (2, N'Method');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[NameType] WHERE [Id]=3) 
+INSERT INTO [Enum].[NameType] ([Id], [Name]) 
+VALUES (3, N'Property');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[NameType] WHERE [Id]=4) 
+INSERT INTO [Enum].[NameType] ([Id], [Name]) 
+VALUES (4, N'Field');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[NameType] WHERE [Id]=5) 
+INSERT INTO [Enum].[NameType] ([Id], [Name]) 
+VALUES (5, N'Parameter');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[NameType] WHERE [Id]=6) 
+INSERT INTO [Enum].[NameType] ([Id], [Name]) 
+VALUES (6, N'LocalVariable');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[NameType] WHERE [Id]=7) 
+INSERT INTO [Enum].[NameType] ([Id], [Name]) 
+VALUES (7, N'TupleField');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[NameType] WHERE [Id]=8) 
+INSERT INTO [Enum].[NameType] ([Id], [Name]) 
+VALUES (8, N'Enum');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[NameType] WHERE [Id]=9) 
+INSERT INTO [Enum].[NameType] ([Id], [Name]) 
+VALUES (9, N'EnumMember');
+
+
+--table [Flag].[CodeGenOption]
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS (SELECT 1 FROM [Flag].[CodeGenOption] WHERE [Value]=0) 
+INSERT INTO [Flag].[CodeGenOption] ([Value], [Name], [IsSingleBit]) 
+VALUES (0, N'None', 0);
+
+IF NOT EXISTS (SELECT 1 FROM [Flag].[CodeGenOption] WHERE [Value]=1) 
+INSERT INTO [Flag].[CodeGenOption] ([Value], [Name], [IsSingleBit]) 
+VALUES (1, N'GenEnums', 1);
+
+IF NOT EXISTS (SELECT 1 FROM [Flag].[CodeGenOption] WHERE [Value]=2) 
+INSERT INTO [Flag].[CodeGenOption] ([Value], [Name], [IsSingleBit]) 
+VALUES (2, N'GenResultTypes', 1);
+
+IF NOT EXISTS (SELECT 1 FROM [Flag].[CodeGenOption] WHERE [Value]=4) 
+INSERT INTO [Flag].[CodeGenOption] ([Value], [Name], [IsSingleBit]) 
+VALUES (4, N'GenTvpTypes', 1);
+
+IF NOT EXISTS (SELECT 1 FROM [Flag].[CodeGenOption] WHERE [Value]=8) 
+INSERT INTO [Flag].[CodeGenOption] ([Value], [Name], [IsSingleBit]) 
+VALUES (8, N'GenSpWrappers', 1);
+
+IF NOT EXISTS (SELECT 1 FROM [Flag].[CodeGenOption] WHERE [Value]=32767) 
+INSERT INTO [Flag].[CodeGenOption] ([Value], [Name], [IsSingleBit]) 
+VALUES (32767, N'GenAll', 0);
+
 
 -- table: [dbo].[DataTypeMap]
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -336,5 +410,44 @@ INSERT INTO [dbo].[DataTypeMap] ([LanguageId], [SqlType], [NativeType], [SqlDbTy
 VALUES (1, N'sql_variant', N'object', N'SqlDbType.Variant', N'DbType.Object', 1, 0, 0, 0);
 
 
+-- table: [dbo].[LanguageNameCasing]
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS (SELECT 1 FROM [dbo].[LanguageNameCasing] WHERE [LanguageId]=1 AND [NameTypeId]=1) 
+INSERT INTO [dbo].[LanguageNameCasing] ([LanguageId], [NameTypeId], [CasingId]) 
+VALUES (1, 1, 1);
 
--- Completion time: 2024-02-10T16:35:24.1220221+00:00
+IF NOT EXISTS (SELECT 1 FROM [dbo].[LanguageNameCasing] WHERE [LanguageId]=1 AND [NameTypeId]=2) 
+INSERT INTO [dbo].[LanguageNameCasing] ([LanguageId], [NameTypeId], [CasingId]) 
+VALUES (1, 2, 1);
+
+IF NOT EXISTS (SELECT 1 FROM [dbo].[LanguageNameCasing] WHERE [LanguageId]=1 AND [NameTypeId]=3) 
+INSERT INTO [dbo].[LanguageNameCasing] ([LanguageId], [NameTypeId], [CasingId]) 
+VALUES (1, 3, 1);
+
+IF NOT EXISTS (SELECT 1 FROM [dbo].[LanguageNameCasing] WHERE [LanguageId]=1 AND [NameTypeId]=4) 
+INSERT INTO [dbo].[LanguageNameCasing] ([LanguageId], [NameTypeId], [CasingId]) 
+VALUES (1, 4, 2);
+
+IF NOT EXISTS (SELECT 1 FROM [dbo].[LanguageNameCasing] WHERE [LanguageId]=1 AND [NameTypeId]=5) 
+INSERT INTO [dbo].[LanguageNameCasing] ([LanguageId], [NameTypeId], [CasingId]) 
+VALUES (1, 5, 2);
+
+IF NOT EXISTS (SELECT 1 FROM [dbo].[LanguageNameCasing] WHERE [LanguageId]=1 AND [NameTypeId]=6) 
+INSERT INTO [dbo].[LanguageNameCasing] ([LanguageId], [NameTypeId], [CasingId]) 
+VALUES (1, 6, 2);
+
+IF NOT EXISTS (SELECT 1 FROM [dbo].[LanguageNameCasing] WHERE [LanguageId]=1 AND [NameTypeId]=7) 
+INSERT INTO [dbo].[LanguageNameCasing] ([LanguageId], [NameTypeId], [CasingId]) 
+VALUES (1, 7, 1);
+
+IF NOT EXISTS (SELECT 1 FROM [dbo].[LanguageNameCasing] WHERE [LanguageId]=1 AND [NameTypeId]=8) 
+INSERT INTO [dbo].[LanguageNameCasing] ([LanguageId], [NameTypeId], [CasingId]) 
+VALUES (1, 8, 1);
+
+IF NOT EXISTS (SELECT 1 FROM [dbo].[LanguageNameCasing] WHERE [LanguageId]=1 AND [NameTypeId]=9) 
+INSERT INTO [dbo].[LanguageNameCasing] ([LanguageId], [NameTypeId], [CasingId]) 
+VALUES (1, 9, 1);
+
+
+
+-- Completion time: 2024-02-11T22:10:10.9435675+00:00

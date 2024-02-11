@@ -27,6 +27,16 @@ SELECT CAST(N'IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=' + 
 FROM [Enum].[TemplateType]
 ORDER BY [Id];
 
+SELECT CAST(N'IF NOT EXISTS (SELECT 1 FROM [Enum].[NameType] WHERE [Id]=' + LOWER([Id]) + N') ' + CHAR(13) + CHAR(10) + N'INSERT INTO [Enum].[NameType] ([Id], [Name]) ' 
+	  + CHAR(13) + CHAR(10) + N'VALUES (' + LOWER([Id]) + N', N' +  QUOTENAME([Name], N'''') + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(200)) [--table [Enum]].[NameType]]]
+FROM [Enum].[NameType]
+ORDER BY [Id];
+
+SELECT CAST(N'IF NOT EXISTS (SELECT 1 FROM [Flag].[CodeGenOption] WHERE [Value]=' + LOWER([Value]) + N') ' + CHAR(13) + CHAR(10) + N'INSERT INTO [Flag].[CodeGenOption] ([Value], [Name], [IsSingleBit]) ' 
+	  + CHAR(13) + CHAR(10) + N'VALUES (' + LOWER([Value]) + N', N' +  QUOTENAME([Name], N'''') + N', '+ LOWER([IsSingleBit])  + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(200)) [--table [Flag]].[CodeGenOption]]]
+FROM [Flag].[CodeGenOption]
+ORDER BY [Value];
+
 SELECT CAST(N'IF NOT EXISTS (SELECT 1 FROM [dbo].[DataTypeMap] WHERE [LanguageId]=' + LOWER([LanguageId]) + N' AND [SqlType]=N' + QUOTENAME([SqlType], N'''') 
 	  + N') ' + CHAR(13) + CHAR(10) + N'INSERT INTO [dbo].[DataTypeMap] ([LanguageId], [SqlType], [NativeType], [SqlDbType], [DbType], [IsNullable], [SizeNeeded], [PrecisionNeeded], [ScaleNeeded]) ' 
 	  + CHAR(13) + CHAR(10) + N'VALUES ('
@@ -35,3 +45,12 @@ SELECT CAST(N'IF NOT EXISTS (SELECT 1 FROM [dbo].[DataTypeMap] WHERE [LanguageId
 	  + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(400)) [-- table: [dbo]].[DataTypeMap]]]
 FROM [dbo].[DataTypeMap]
 ORDER BY [Id];
+
+SELECT CAST(N'IF NOT EXISTS (SELECT 1 FROM [dbo].[LanguageNameCasing] WHERE [LanguageId]=' + LOWER([LanguageId]) + N' AND [NameTypeId]=' + LOWER([NameTypeId]) 
+	  + N') ' + CHAR(13) + CHAR(10) + N'INSERT INTO [dbo].[LanguageNameCasing] ([LanguageId], [NameTypeId], [CasingId]) ' 
+	  + CHAR(13) + CHAR(10) + N'VALUES ('
+	  + LOWER([LanguageId]) + N', ' + LOWER([NameTypeId]) + N', ' + LOWER([CasingId])	  
+	  + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(250)) [-- table: [dbo]].[LanguageNameCasing]]]
+FROM [dbo].[LanguageNameCasing]
+ORDER BY [Id]
+

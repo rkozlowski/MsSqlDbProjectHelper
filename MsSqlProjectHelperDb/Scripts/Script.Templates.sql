@@ -53,6 +53,8 @@ DECLARE @TT_START_CLASS TINYINT = 38;
 DECLARE @TT_START_COMMENT_TOOL TINYINT = 39;
 DECLARE @TT_START_COMMENT_ENV TINYINT = 40;
 DECLARE @TT_START_COMMENT_END TINYINT = 41;
+DECLARE @TT_STATIC_CTOR_END TINYINT = 42;
+DECLARE @TT_RS_MAPPING_SETUP TINYINT = 43;
 
 DECLARE @LO_GENERATE_STATIC_CLASS BIGINT = 1;
 DECLARE @LO_TREAT_OUTPUT_PARAMS_AS_INPUT_OUTPUT BIGINT = 2;
@@ -75,6 +77,7 @@ VALUES
 N'//     Source database: @{Database}
 //     Source server:   @{ServerName}
 //     Source instance: @{InstanceName}
+//     Database user:   @{DbUser}
 //     Timestamp:       @{Timestamp}');
 
 INSERT INTO #Template
@@ -82,6 +85,7 @@ INSERT INTO #Template
 VALUES
 (@langId, @TT_START_COMMENT_TOOL, 
 N'//     Tool name:       @{ToolName}
+//     Tool database:   @{ToolDatabase}
 //     Tool version:    @{ToolVersion}
 //     Tool URL:        @{ToolUrl}');
 
@@ -103,6 +107,7 @@ VALUES
 (@langId, @TT_START_USING,
 N'using System.Data;
 using System.Data.Common;
+using System.Data.Linq.Mapping;
 using Microsoft.Data.SqlClient;
 using Dapper;
 ');
@@ -115,13 +120,27 @@ VALUES
 N'using System;
 using System.Data;
 using System.Data.Common;
-using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Data.Linq.Mapping;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 ');
 
+INSERT INTO #Template
+([LanguageId], [TypeId], [LanguageOptions], [Template])
+VALUES
+(@langId, @TT_START_USING, @LO_TARGET_CLASSIC_DOT_NET | @LO_USE_SYNC_WRAPPERS,
+N'using System;
+using System.Data;
+using System.Data.Common;
+using System.Data.SqlClient;
+using System.Data.Linq.Mapping;
+using System.Collections.Generic;
+using System.Linq;
+using Dapper;
+');
 
 
 INSERT INTO #Template
@@ -133,6 +152,8 @@ N'namespace @{NamespaceName}
     @{ClassAccess} partial class @{ClassName}
     {
         public string ConnectionString { get; set; }
+
+		public int DefaultCommandTimeoutSec { get; set; } = 30;
         
         public @{ClassName}(string connectionString = null)
         {
@@ -143,6 +164,9 @@ N'namespace @{NamespaceName}
         {
             return new SqlConnection(ConnectionString);
         }
+
+		static @{ClassName}()
+		{
 ');
 
 INSERT INTO #Template
@@ -154,11 +178,39 @@ N'namespace @{NamespaceName}
     @{ClassAccess} static partial class @{ClassName}
     {
         public static string ConnectionString { get; set; }
+
+		public static int DefaultCommandTimeoutSec { get; set; } = 30;
         
         private static DbConnection GetDbConnection()
         {
             return new SqlConnection(ConnectionString);
         }
+        
+        static @{ClassName}()
+        {
+');
+
+
+INSERT INTO #Template
+([LanguageId], [TypeId], [Template])
+VALUES
+(@langId, @TT_STATIC_CTOR_END, 
+N'        }
+');
+
+INSERT INTO #Template
+([LanguageId], [TypeId], [Template])
+VALUES
+(@langId, @TT_RS_MAPPING_SETUP, 
+N'            SqlMapper.SetTypeMap(
+                typeof(@{RsType}),
+                new CustomPropertyTypeMap(
+                    typeof(@{RsType}),
+                    (type, columnName) =>
+                        type.GetProperties().FirstOrDefault(prop =>
+                            prop.GetCustomAttributes(false)
+                                .OfType<ColumnAttribute>()
+                                .Any(attr => attr.Name == columnName))));
 ');
 
 
@@ -224,7 +276,9 @@ N'        }
 INSERT INTO #Template
 ([LanguageId], [TypeId], [Template])
 VALUES
-(@langId, @TT_RESULT_TYPE_PROPERTY, N'            @{PropertyAccess} @{Type} @{Name} { get; set; }');
+(@langId, @TT_RESULT_TYPE_PROPERTY, 
+N'            [Column(Name="@{ColumnName}")]
+            @{PropertyAccess} @{Type} @{Name} { get; set; }');
 
 
 
@@ -249,10 +303,36 @@ N'
 
 
 INSERT INTO #Template
+([LanguageId], [TypeId], [LanguageOptions], [Template])
+VALUES
+(@langId, @TT_WRAPPER_START, @LO_USE_SYNC_WRAPPERS,
+N'
+        // Wrapper method for a stored procedure: @{SpSchema}.@{SpName}
+        @{MethodAccess} @{TupleStart}
+            @{ResultType}@{ResultVarNameTuple}@{Sep}');
+
+INSERT INTO #Template
+([LanguageId], [TypeId], [LanguageOptions], [Template])
+VALUES
+(@langId, @TT_WRAPPER_START, @LO_GENERATE_STATIC_CLASS | @LO_USE_SYNC_WRAPPERS,
+N'
+        // Wrapper method for a stored procedure: @{SpSchema}.@{SpName}
+        @{MethodAccess} static @{TupleStart}
+            @{ResultType}@{ResultVarNameTuple}@{Sep}');
+
+
+INSERT INTO #Template
 ([LanguageId], [TypeId], [Template])
 VALUES
 (@langId, @TT_WRAPPER_START2, 
 N'        @{TupleEnd}> @{WrapperName}Async(');
+
+
+INSERT INTO #Template
+([LanguageId], [TypeId], [LanguageOptions], [Template])
+VALUES
+(@langId, @TT_WRAPPER_START2, @LO_USE_SYNC_WRAPPERS,
+N'        @{TupleEnd} @{WrapperName}(');
 
 INSERT INTO #Template
 ([LanguageId], [TypeId], [Template])
@@ -271,7 +351,7 @@ VALUES
             using (var connection = GetDbConnection())
             {
                 await connection.OpenAsync();
-                await connection.ExecuteAsync("@{SpSchema}.@{SpName}", p, commandType: CommandType.StoredProcedure);
+                await connection.ExecuteAsync("@{SpSchema}.@{SpName}", p, commandTimeout: DefaultCommandTimeoutSec, commandType: CommandType.StoredProcedure);
                 connection.Close();
             }
             @{ResultVarName} = p.Get<@{ResultType}>("@returnValue");
@@ -286,7 +366,39 @@ VALUES
             {
                 await connection.OpenAsync();
 
-                var queryResult = await connection.QueryAsync<@{ResultTypeSingle}>("@{SpSchema}.@{SpName}", p, commandType: CommandType.StoredProcedure);
+                var queryResult = await connection.QueryAsync<@{ResultTypeSingle}>("@{SpSchema}.@{SpName}", p, commandTimeout: DefaultCommandTimeoutSec, commandType: CommandType.StoredProcedure);
+
+                connection.Close();
+                @{ResultVarName} = queryResult.ToList();
+            }
+');
+
+INSERT INTO #Template
+([LanguageId], [TypeId], [LanguageOptions], [Template])
+VALUES
+(@langId, @TT_WRAPPER_EXEC, @LO_USE_SYNC_WRAPPERS, 
+N'            p.Add("@returnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+            
+            using (var connection = GetDbConnection())
+            {
+                connection.Open();
+                connection.Execute("@{SpSchema}.@{SpName}", p, commandTimeout: DefaultCommandTimeoutSec, commandType: CommandType.StoredProcedure);
+                connection.Close();
+            }
+            @{ResultVarName} = p.Get<@{ResultType}>("@returnValue");
+');
+
+
+INSERT INTO #Template
+([LanguageId], [TypeId], [LanguageOptions], [Template])
+VALUES
+(@langId, @TT_WRAPPER_EXEC_RS, @LO_USE_SYNC_WRAPPERS,
+N'
+            using (var connection = GetDbConnection())
+            {
+                connection.Open();
+
+                var queryResult = connection.Query<@{ResultTypeSingle}>("@{SpSchema}.@{SpName}", p, commandTimeout: DefaultCommandTimeoutSec, commandType: CommandType.StoredProcedure);
 
                 connection.Close();
                 @{ResultVarName} = queryResult.ToList();

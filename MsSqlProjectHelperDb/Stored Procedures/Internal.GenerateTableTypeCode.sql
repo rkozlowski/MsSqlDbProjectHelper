@@ -72,8 +72,8 @@ BEGIN
 
 	DECLARE @vars [Internal].[Variable];
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'ClassName', @typeName);
-	INSERT INTO @vars ([Name], [Value]) VALUES (N'TtSchema', QUOTENAME(@ttSchema));
-	INSERT INTO @vars ([Name], [Value]) VALUES (N'TtName', QUOTENAME(@ttName));
+	INSERT INTO @vars ([Name], [Value]) VALUES (N'TtSchema', [Internal].[EscapeString](@langId, QUOTENAME(@ttSchema)));
+	INSERT INTO @vars ([Name], [Value]) VALUES (N'TtName', [Internal].[EscapeString](@langId, QUOTENAME(@ttName)));
 	
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'ClassAccess', N'public');
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'PropertyAccess', N'public');
@@ -149,7 +149,7 @@ BEGIN
 
 	WHILE @id IS NOT NULL
 	BEGIN		
-		SELECT @name=ttc.[PropertyName], @columnName=ttc.[Name], @baseType=dtm.[NativeType], -- + CASE WHEN dtm.[IsNullable]=0 AND ttc.[IsNullable]=1 THEN N'?' ELSE N'' END,
+		SELECT @name=ttc.[PropertyName], @columnName=[Internal].[EscapeString](@langId, ttc.[Name]), @baseType=dtm.[NativeType], -- + CASE WHEN dtm.[IsNullable]=0 AND ttc.[IsNullable]=1 THEN N'?' ELSE N'' END,
 		@type=ISNULL(@className + N'.' + e.[EnumName], dtm.[NativeType]) + CASE WHEN dtm.[IsNullable]=0 AND ttc.[IsNullable]=1 THEN N'?' ELSE N'' END,
 		@allowNull=ttc.[IsNullable], @maxLength=CASE WHEN dtm.[SizeNeeded]=1 THEN ttc.[MaxLen] ELSE NULL END
 		FROM #TableTypeColumn ttc 
@@ -227,7 +227,7 @@ BEGIN
 
 	WHILE @id IS NOT NULL
 	BEGIN		
-		SELECT @name=ttc.[PropertyName], @columnName=ttc.[Name], @baseType=dtm.[NativeType] + CASE WHEN dtm.[IsNullable]=0 AND ttc.[IsNullable]=1 THEN N'?' ELSE N'' END,
+		SELECT @name=ttc.[PropertyName], @columnName=[Internal].[EscapeString](@langId, ttc.[Name]), @baseType=dtm.[NativeType] + CASE WHEN dtm.[IsNullable]=0 AND ttc.[IsNullable]=1 THEN N'?' ELSE N'' END,
 		@type=ISNULL(@className + N'.' + e.[EnumName], dtm.[NativeType]) + CASE WHEN dtm.[IsNullable]=0 AND ttc.[IsNullable]=1 THEN N'?' ELSE N'' END,		
 		@allowNull=ttc.[IsNullable], @maxLength=CASE WHEN dtm.[SizeNeeded]=1 THEN ttc.[MaxLen] ELSE NULL END
 		FROM #TableTypeColumn ttc 

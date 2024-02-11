@@ -42,6 +42,16 @@ BEGIN
 
 	DECLARE @LO_GENERATE_STATIC_CLASS BIGINT = 1;
 	DECLARE @LO_TREAT_OUTPUT_PARAMS_AS_INPUT_OUTPUT BIGINT = 2;
+
+	DECLARE @NT_CLASS TINYINT = 1;
+	DECLARE @NT_METHOD TINYINT = 2;
+	DECLARE @NT_PROPERTY TINYINT = 3;
+	DECLARE @NT_FIELD TINYINT = 4;
+	DECLARE @NT_PARAMETER TINYINT = 5;
+	DECLARE @NT_LOCAL_VARIABLE TINYINT = 6;
+	DECLARE @NT_TUPLE_FIELD TINYINT = 7;
+	DECLARE @NT_ENUM TINYINT = 8;
+	DECLARE @NT_ENUM_MEMBER TINYINT = 9;
 	
 	DECLARE @wrapperName NVARCHAR(200);
 	DECLARE @spSchema NVARCHAR(128);
@@ -99,8 +109,8 @@ BEGIN
 	DECLARE @vars [Internal].[Variable];
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'ClassName', @className);
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'WrapperName', @wrapperName);
-	INSERT INTO @vars ([Name], [Value]) VALUES (N'SpSchema', QUOTENAME(@spSchema));
-	INSERT INTO @vars ([Name], [Value]) VALUES (N'SpName', QUOTENAME(@spName));
+	INSERT INTO @vars ([Name], [Value]) VALUES (N'SpSchema', [Internal].[EscapeString](@langId, QUOTENAME(@spSchema)));
+	INSERT INTO @vars ([Name], [Value]) VALUES (N'SpName', [Internal].[EscapeString](@langId, QUOTENAME(@spName)));
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'ResultType', @resultType);
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'ResultTypeSingle', @resultTypeSingle);
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'ResultVarName', CASE WHEN @hasResultSet=1 THEN N'result' ELSE 'returnValue' END);
@@ -152,7 +162,7 @@ BEGIN
 	WHILE @id IS NOT NULL
 	BEGIN		
 		SELECT @name=p.[Name], @type=ISNULL(@className + N'.' + e.[EnumName], dtm.[NativeType]) + CASE WHEN dtm.[IsNullable]=0 THEN N'?' ELSE N'' END, 
-			@paramName= [Internal].[GetCaseName](@C_PASCAL_CASE, p.[ParamName], NULL), @isOutput=p.[IsOutput]			
+			@paramName= [Internal].[GetName](@projectId, @NT_TUPLE_FIELD, p.[ParamName], NULL), @isOutput=p.[IsOutput]			
 		FROM #StoredProcParam p 
 		JOIN [dbo].[DataTypeMap] dtm ON dtm.[SqlType]=p.[SqlType]
 		LEFT JOIN #Enum e ON p.[EnumId]=e.[Id]
@@ -257,9 +267,9 @@ BEGIN
 			@scale=CASE WHEN dtm.[ScaleNeeded]=1 THEN LOWER(p.[Scale]) ELSE 'null' END,
 			@typeCast=CASE WHEN e.[Id] IS NULL THEN N'' ELSE N'(' + dtm.[NativeType] + CASE WHEN dtm.[IsNullable]=0 THEN N'?' ELSE N'' END + N') ' END,
 			@isTableType=CASE WHEN tt.[Id] IS NULL THEN 0 ELSE 1 END,
-			@dtName=[Internal].[GetCaseName](@C_CAMEL_CASE, N'dt_' + @paramName, NULL),
-			@readerName=[Internal].[GetCaseName](@C_CAMEL_CASE,@paramName + '_reader', NULL),
-			@tvpName=QUOTENAME(tt.[SqlTypeSchema]) + N'.' + QUOTENAME(tt.[SqlType]),
+			@dtName=[Internal].[GetName](@projectId, @NT_LOCAL_VARIABLE, N'dt_' + @paramName, NULL),
+			@readerName=[Internal].[GetName](@projectId, @NT_LOCAL_VARIABLE, @paramName + '_reader', NULL),
+			@tvpName=QUOTENAME(tt.[SqlTypeSchema]) + N'.' + [Internal].[EscapeString](@langId, QUOTENAME(tt.[SqlType])),
 			@tableType=@className + N'.' + tt.[Name]
 		FROM #StoredProcParam p 
 		LEFT JOIN [dbo].[DataTypeMap] dtm ON dtm.[SqlType]=p.[SqlType]

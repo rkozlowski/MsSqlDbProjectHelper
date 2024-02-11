@@ -117,6 +117,16 @@
     <Build Include="Security\Internal.sql" />
     <Build Include="Security\Enum.sql" />
     <Build Include="Functions\Internal.GetCurrentVersion.sql" />
+    <None Include="DeploymentScripts\MsSqlProjectHelperDb_FullDeploy_v_0.4.sql" />
+    <None Include="DeploymentScripts\MsSqlProjectHelperDb_Upgrade_v_0.3_to_v_0.4.sql" />
+    <Build Include="Tables\Enum.NameType.sql" />
+    <Build Include="Tables\dbo.LanguageNameCasing.sql" />
+    <Build Include="Tables\Flag.CodeGenOption.sql" />
+    <Build Include="Functions\Internal.GetCodeGenerationOptions.sql" />
+    <Build Include="Functions\Internal.EscapeString.sql" />
+    <Build Include="Security\Flag.sql" />
+    <None Include="DeploymentScripts\MsSqlProjectHelperDb_FullDeploy_v_0.5.sql" />
+    <None Include="DeploymentScripts\MsSqlProjectHelperDb_Upgrade_v_0.4_to_v_0.5.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Scripts\Script.PostDeployment.sql" />

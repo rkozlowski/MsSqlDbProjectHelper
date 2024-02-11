@@ -1,5 +1,5 @@
-﻿DECLARE @version VARCHAR(50) = '0.4';
-DECLARE @description NVARCHAR(500) = N'Added support for classic .net framework (e.g. version 4.8).'
+﻿DECLARE @version VARCHAR(50) = '0.5';
+DECLARE @description NVARCHAR(500) = N'Added support for synchronous database calls.'
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Version] WHERE [Version]=@version)
 BEGIN
