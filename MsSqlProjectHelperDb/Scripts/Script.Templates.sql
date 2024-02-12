@@ -6,7 +6,7 @@ CREATE TABLE #Template
     [Id] [smallint] IDENTITY(1,1) NOT NULL PRIMARY KEY,
     [LanguageId] [tinyint] NOT NULL,
     [TypeId] [tinyint] NOT NULL,
-	[LanguageOptions] BIGINT NOT NULL DEFAULT(0),
+    [LanguageOptions] BIGINT NOT NULL DEFAULT(0),
     [Template] [nvarchar](4000) NOT NULL,
     UNIQUE ([LanguageId], [TypeId], [LanguageOptions])
 );
@@ -153,7 +153,7 @@ N'namespace @{NamespaceName}
     {
         public string ConnectionString { get; set; }
 
-		public int DefaultCommandTimeoutSec { get; set; } = 30;
+        public int DefaultCommandTimeoutSec { get; set; } = 30;
         
         public @{ClassName}(string connectionString = null)
         {
@@ -165,8 +165,8 @@ N'namespace @{NamespaceName}
             return new SqlConnection(ConnectionString);
         }
 
-		static @{ClassName}()
-		{
+        static @{ClassName}()
+        {
 ');
 
 INSERT INTO #Template
@@ -179,7 +179,7 @@ N'namespace @{NamespaceName}
     {
         public static string ConnectionString { get; set; }
 
-		public static int DefaultCommandTimeoutSec { get; set; } = 30;
+        public static int DefaultCommandTimeoutSec { get; set; } = 30;
         
         private static DbConnection GetDbConnection()
         {
@@ -460,9 +460,9 @@ INSERT INTO #Template
 ([LanguageId], [TypeId], [Template])
 VALUES
 (@langId, @TT_WRAPPER_PARAM_PRE_EXEC_TABLE_TYPE, N'
-            var @{DtName} = @{TableType}.ToDataTable(@{ParamName});			
-			p.Add("@{Name}", @{DtName}.AsTableValuedParameter("@{TvpName}"));
-			');
+            var @{DtName} = @{TableType}.ToDataTable(@{ParamName});            
+            p.Add("@{Name}", @{DtName}.AsTableValuedParameter("@{TvpName}"));
+            ');
 
 INSERT INTO #Template
 ([LanguageId], [TypeId], [Template])
@@ -504,16 +504,16 @@ VALUES
 N'
             public static DataTable ToDataTable(IEnumerable<@{ClassName}> records)        
             {
-			    var table = new DataTable("@{TtSchema}.@{TtName}");
-				DataColumn column;
-				DataRow row;
+                var table = new DataTable("@{TtSchema}.@{TtName}");
+                DataColumn column;
+                DataRow row;
 ');
 
 INSERT INTO #Template
 ([LanguageId], [TypeId], [Template])
 VALUES
 (@langId, @TT_TABLE_TYPE_DT_END, 
-N'				return table;
+N'                return table;
             }
 ');
 
@@ -522,22 +522,22 @@ INSERT INTO #Template
 ([LanguageId], [TypeId], [Template])
 VALUES
 (@langId, @TT_TABLE_TYPE_DT_COLUMN, 
-N'			    column = new DataColumn();
-			    column.DataType = typeof(@{BaseType});
-			    column.ColumnName = "@{ColumnName}";
-				column.AllowDBNull = @{AllowNull};');
+N'                column = new DataColumn();
+                column.DataType = typeof(@{BaseType});
+                column.ColumnName = "@{ColumnName}";
+                column.AllowDBNull = @{AllowNull};');
 
 INSERT INTO #Template
 ([LanguageId], [TypeId], [Template])
 VALUES
 (@langId, @TT_TABLE_TYPE_DT_COLUMN_MAX_LEN, 
-N'				column.MaxLength = @{MaxLength};');
+N'                column.MaxLength = @{MaxLength};');
 
 INSERT INTO #Template
 ([LanguageId], [TypeId], [Template])
 VALUES
 (@langId, @TT_TABLE_TYPE_DT_COLUMN_ADD, 
-N'			    table.Columns.Add(column);				
+N'                table.Columns.Add(column);                
 ');
 
 
@@ -545,30 +545,30 @@ INSERT INTO #Template
 ([LanguageId], [TypeId], [Template])
 VALUES
 (@langId, @TT_TABLE_TYPE_DT_ROWS_START, 
-N'			    foreach (var record in records)
-			    {
-				    row = table.NewRow();');
+N'                foreach (var record in records)
+                {
+                    row = table.NewRow();');
 
 
 INSERT INTO #Template
 ([LanguageId], [TypeId], [Template])
 VALUES
 (@langId, @TT_TABLE_TYPE_DT_ROWS_END, 
-N'			        table.Rows.Add(row);  
-			    }
+N'                    table.Rows.Add(row);  
+                }
 ');
 
 INSERT INTO #Template
 ([LanguageId], [TypeId], [Template])
 VALUES
 (@langId, @TT_TABLE_TYPE_DT_ROW, 
-N'			    row["@{ColumnName}"] = @{Cast}record.@{Name};');
+N'                row["@{ColumnName}"] = @{Cast}record.@{Name};');
 
 INSERT INTO #Template
 ([LanguageId], [TypeId], [Template])
 VALUES
 (@langId, @TT_TABLE_TYPE_DT_ROW_NULL, 
-N'			    row["@{ColumnName}"] = (object)(@{Cast}record.@{Name}) ?? DBNull.Value;');
+N'                row["@{ColumnName}"] = (object)(@{Cast}record.@{Name}) ?? DBNull.Value;');
 
 
 GO
