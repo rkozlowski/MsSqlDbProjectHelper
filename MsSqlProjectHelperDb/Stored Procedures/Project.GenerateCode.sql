@@ -225,6 +225,7 @@ BEGIN
 		[MaxLen] SMALLINT NOT NULL, 
 		[Precision] TINYINT NOT NULL, 
 		[Scale] TINYINT NOT NULL,
+        [IsIdentity] BIT NOT NULL,
 		[EnumId] INT NULL,
 		[PropertyName] NVARCHAR(200) NULL,
 	);

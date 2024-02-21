@@ -95,8 +95,8 @@ BEGIN
 	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_TABLE_TYPE_START)
 	ORDER BY c.[Id];
 
-	DECLARE @id INT = (SELECT MIN([Id]) FROM #TableTypeColumn WHERE [TableTypeId]=@ttId);
-	DECLARE @lastId INT = (SELECT MAX([Id]) FROM #TableTypeColumn WHERE [TableTypeId]=@ttId);
+	DECLARE @id INT = (SELECT MIN([Id]) FROM #TableTypeColumn WHERE [TableTypeId]=@ttId AND [IsIdentity]=0);
+	DECLARE @lastId INT = (SELECT MAX([Id]) FROM #TableTypeColumn WHERE [TableTypeId]=@ttId AND [IsIdentity]=0);
 	DECLARE @name NVARCHAR(128);
 	DECLARE @columnName NVARCHAR(128);
 	DECLARE @type NVARCHAR(128);
@@ -133,7 +133,7 @@ BEGIN
 		WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_TABLE_TYPE_PROPERTY)
 		ORDER BY c.[Id];
 
-		SELECT @id=MIN([Id]) FROM #TableTypeColumn WHERE [TableTypeId]=@ttId AND [Id]>@id;
+		SELECT @id=MIN([Id]) FROM #TableTypeColumn WHERE [TableTypeId]=@ttId AND [IsIdentity]=0 AND [Id]>@id;
 	END
 
 	INSERT INTO #Output ([Text])
@@ -143,7 +143,7 @@ BEGIN
 	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_TABLE_TYPE_DT_START)
 	ORDER BY c.[Id];
 
-	SELECT @id=MIN([Id]) FROM #TableTypeColumn WHERE [TableTypeId]=@ttId;
+	SELECT @id=MIN([Id]) FROM #TableTypeColumn WHERE [TableTypeId]=@ttId AND [IsIdentity]=0;
 	DECLARE @allowNull BIT
 	DECLARE @maxLength INT;
 
@@ -212,7 +212,7 @@ BEGIN
 		WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_TABLE_TYPE_DT_COLUMN_ADD)
 		ORDER BY c.[Id];
 
-		SELECT @id=MIN([Id]) FROM #TableTypeColumn WHERE [TableTypeId]=@ttId AND [Id]>@id;
+		SELECT @id=MIN([Id]) FROM #TableTypeColumn WHERE [TableTypeId]=@ttId AND [IsIdentity]=0 AND [Id]>@id;
 	END
 
 	INSERT INTO #Output ([Text])
@@ -222,7 +222,7 @@ BEGIN
 	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_TABLE_TYPE_DT_ROWS_START)
 	ORDER BY c.[Id];
 
-	SELECT @id=MIN([Id]) FROM #TableTypeColumn WHERE [TableTypeId]=@ttId;
+	SELECT @id=MIN([Id]) FROM #TableTypeColumn WHERE [TableTypeId]=@ttId AND [IsIdentity]=0;
 	DECLARE @cast NVARCHAR(200);
 
 	WHILE @id IS NOT NULL
@@ -276,7 +276,7 @@ BEGIN
 		WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, CASE WHEN @allowNull=1 THEN @TT_TABLE_TYPE_DT_ROW_NULL ELSE @TT_TABLE_TYPE_DT_ROW END)
 		ORDER BY c.[Id];		
 
-		SELECT @id=MIN([Id]) FROM #TableTypeColumn WHERE [TableTypeId]=@ttId AND [Id]>@id;
+		SELECT @id=MIN([Id]) FROM #TableTypeColumn WHERE [TableTypeId]=@ttId AND [IsIdentity]=0 AND [Id]>@id;
 	END
 
 	INSERT INTO #Output ([Text])

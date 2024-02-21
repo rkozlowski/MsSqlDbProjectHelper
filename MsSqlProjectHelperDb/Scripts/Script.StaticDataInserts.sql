@@ -391,7 +391,7 @@ VALUES (1, N'smallmoney', N'decimal', N'SqlDbType.SmallMoney', N'DbType.Decimal'
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[DataTypeMap] WHERE [LanguageId]=1 AND [SqlType]=N'bit') 
 INSERT INTO [dbo].[DataTypeMap] ([LanguageId], [SqlType], [NativeType], [SqlDbType], [DbType], [IsNullable], [SizeNeeded], [PrecisionNeeded], [ScaleNeeded]) 
-VALUES (1, N'bit', N'bool', N'SqlDbType.Bit', N'DbType.Boolean', 1, 0, 0, 0);
+VALUES (1, N'bit', N'bool', N'SqlDbType.Bit', N'DbType.Boolean', 0, 0, 0, 0);
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[DataTypeMap] WHERE [LanguageId]=1 AND [SqlType]=N'varbinary') 
 INSERT INTO [dbo].[DataTypeMap] ([LanguageId], [SqlType], [NativeType], [SqlDbType], [DbType], [IsNullable], [SizeNeeded], [PrecisionNeeded], [ScaleNeeded]) 
@@ -450,4 +450,4 @@ VALUES (1, 9, 1);
 
 
 
--- Completion time: 2024-02-11T22:10:10.9435675+00:00
+-- Completion time: 2024-02-21T17:37:54.3949189+00:00

@@ -64,7 +64,7 @@ BEGIN
 	SET @query = N'USE ' + QUOTENAME(@dbName) + N';
 	';
 	SET @query += N'SELECT ' + LOWER(@ttId) + N' [TableTypeId], c.[column_id] [ColumnId], c.[name] [Name], c.is_nullable [IsNullable], t.[name] [SqlType], SCHEMA_NAME(t.schema_id) [SqlTypeSchema], '
-	SET @query += N'c.[max_length] [MaxLen], c.[precision] [Precision], c.[scale] [Scale] '
+	SET @query += N'c.[max_length] [MaxLen], c.[precision] [Precision], c.[scale] [Scale], c.[is_identity] [IsIdentity] '
 	SET @query += N'FROM sys.table_types tt '
 	SET @query += N'JOIN sys.columns c on c.object_id = tt.type_table_object_id '
 	SET @query += N'JOIN sys.types t ON c.system_type_id=t.system_type_id AND c.system_type_id = t.user_type_id '
@@ -75,7 +75,7 @@ BEGIN
 	--PRINT(@query);
 	
 	INSERT INTO #TableTypeColumn
-	([TableTypeId], [ColumnId], [Name], [IsNullable], [SqlType], [SqlTypeSchema], [MaxLen], [Precision], [Scale])
+	([TableTypeId], [ColumnId], [Name], [IsNullable], [SqlType], [SqlTypeSchema], [MaxLen], [Precision], [Scale], [IsIdentity])
 	EXEC(@query);
 
 	IF (@pemId IN (@PEM_ENUM_NAME, @PEM_ENUM_NAME_WITH_ID, @PEM_ENUM_NAME_WITH_OR_WITHOUT_ID))
