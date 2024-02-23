@@ -129,6 +129,8 @@
     <None Include="DeploymentScripts\MsSqlProjectHelperDb_Upgrade_v_0.4_to_v_0.5.sql" />
     <None Include="DeploymentScripts\MsSqlProjectHelperDb_FullDeploy_v_0.5.1.sql" />
     <None Include="DeploymentScripts\MsSqlProjectHelperDb_Upgrade_v_0.5_to_v_0.5.1.sql" />
+    <None Include="DeploymentScripts\MsSqlProjectHelperDb_FullDeploy_v_0.5.2.sql" />
+    <None Include="DeploymentScripts\MsSqlProjectHelperDb_Upgrade_v_0.5.1_to_v_0.5.2.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Scripts\Script.PostDeployment.sql" />

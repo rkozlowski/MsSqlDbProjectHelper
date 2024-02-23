@@ -77,7 +77,7 @@ BEGIN
 	END
 
 	--DECLARE @genStaticClass BIT; 
-	DECLARE @treatOutputParamAsInputOutput BIT = CASE WHEN (@langOptions & @LO_TREAT_OUTPUT_PARAMS_AS_INPUT_OUTPUT) = @langOptions THEN 1 ELSE 0 END;
+	DECLARE @treatOutputParamAsInputOutput BIT = CASE WHEN (@langOptions & @LO_TREAT_OUTPUT_PARAMS_AS_INPUT_OUTPUT) = @LO_TREAT_OUTPUT_PARAMS_AS_INPUT_OUTPUT THEN 1 ELSE 0 END;
 
 	SELECT @wrapperName=sp.[WrapperName], @spSchema=sp.[Schema], @spName=sp.[Name], @hasResultSet=sp.[HasResultSet], @resultType=[ResultType]
 	FROM #StoredProc sp 

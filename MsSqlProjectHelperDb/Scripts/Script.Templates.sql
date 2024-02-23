@@ -55,6 +55,8 @@ DECLARE @TT_START_COMMENT_ENV TINYINT = 40;
 DECLARE @TT_START_COMMENT_END TINYINT = 41;
 DECLARE @TT_STATIC_CTOR_END TINYINT = 42;
 DECLARE @TT_RS_MAPPING_SETUP TINYINT = 43;
+DECLARE @TT_TABLE_TYPE_DT_COLUMN_IDENTITY TINYINT = 44;
+DECLARE @TT_TABLE_TYPE_DT_COLUMN_PRECISION_SCALE TINYINT = 45;
 
 DECLARE @LO_GENERATE_STATIC_CLASS BIGINT = 1;
 DECLARE @LO_TREAT_OUTPUT_PARAMS_AS_INPUT_OUTPUT BIGINT = 2;
@@ -107,8 +109,8 @@ VALUES
 (@langId, @TT_START_USING,
 N'using System.Data;
 using System.Data.Common;
-using System.Data.Linq.Mapping;
 using Microsoft.Data.SqlClient;
+using Microsoft.Data.SqlClient.Server;
 using Dapper;
 ');
 
@@ -121,10 +123,10 @@ N'using System;
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
-using System.Data.Linq.Mapping;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.SqlServer.Server;
 using Dapper;
 ');
 
@@ -136,9 +138,9 @@ N'using System;
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
-using System.Data.Linq.Mapping;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.SqlServer.Server;
 using Dapper;
 ');
 
@@ -165,6 +167,12 @@ N'namespace @{NamespaceName}
             return new SqlConnection(ConnectionString);
         }
 
+        [AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
+        public class ColumnAttribute : Attribute
+        {
+            public string Name { get; set; }
+        }
+
         static @{ClassName}()
         {
 ');
@@ -184,6 +192,12 @@ N'namespace @{NamespaceName}
         private static DbConnection GetDbConnection()
         {
             return new SqlConnection(ConnectionString);
+        }
+
+        [AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
+        public class ColumnAttribute : Attribute
+        {
+            public string Name { get; set; }
         }
         
         static @{ClassName}()
@@ -460,7 +474,7 @@ INSERT INTO #Template
 ([LanguageId], [TypeId], [Template])
 VALUES
 (@langId, @TT_WRAPPER_PARAM_PRE_EXEC_TABLE_TYPE, N'
-            var @{DtName} = @{TableType}.ToDataTable(@{ParamName});            
+            var @{DtName} = @{TableType}.ToSqlDataRecords(@{ParamName});            
             p.Add("@{Name}", @{DtName}.AsTableValuedParameter("@{TvpName}"));
             ');
 
@@ -502,11 +516,12 @@ INSERT INTO #Template
 VALUES
 (@langId, @TT_TABLE_TYPE_DT_START, 
 N'
-            public static DataTable ToDataTable(IEnumerable<@{ClassName}> records)        
+            public static IEnumerable<SqlDataRecord> ToSqlDataRecords(IEnumerable<@{ClassName}> records)        
             {
-                var table = new DataTable("@{TtSchema}.@{TtName}");
-                DataColumn column;
-                DataRow row;
+                var table = new List<SqlDataRecord>();
+                var columns = new SqlMetaData[@{NumberOfColumns}];                
+                SqlMetaData column;
+                SqlDataRecord row;
 ');
 
 INSERT INTO #Template
@@ -522,22 +537,31 @@ INSERT INTO #Template
 ([LanguageId], [TypeId], [Template])
 VALUES
 (@langId, @TT_TABLE_TYPE_DT_COLUMN, 
-N'                column = new DataColumn();
-                column.DataType = typeof(@{BaseType});
-                column.ColumnName = "@{ColumnName}";
-                column.AllowDBNull = @{AllowNull};');
+N'                column = new SqlMetaData("@{ColumnName}", @{SqlDbType});');
 
 INSERT INTO #Template
 ([LanguageId], [TypeId], [Template])
 VALUES
 (@langId, @TT_TABLE_TYPE_DT_COLUMN_MAX_LEN, 
-N'                column.MaxLength = @{MaxLength};');
+N'                column = new SqlMetaData("@{ColumnName}", @{SqlDbType}, @{MaxLength});');
+
+INSERT INTO #Template
+([LanguageId], [TypeId], [Template])
+VALUES
+(@langId, @TT_TABLE_TYPE_DT_COLUMN_IDENTITY, 
+N'                column = new SqlMetaData("@{ColumnName}", @{SqlDbType}, true, false, SortOrder.Unspecified, -1);');
+
+INSERT INTO #Template
+([LanguageId], [TypeId], [Template])
+VALUES
+(@langId, @TT_TABLE_TYPE_DT_COLUMN_PRECISION_SCALE, 
+N'                column = new SqlMetaData("@{ColumnName}", @{SqlDbType}, @{Precision}, @{Scale});');
 
 INSERT INTO #Template
 ([LanguageId], [TypeId], [Template])
 VALUES
 (@langId, @TT_TABLE_TYPE_DT_COLUMN_ADD, 
-N'                table.Columns.Add(column);                
+N'                columns[@{ColumnNumber}] = column;
 ');
 
 
@@ -547,14 +571,14 @@ VALUES
 (@langId, @TT_TABLE_TYPE_DT_ROWS_START, 
 N'                foreach (var record in records)
                 {
-                    row = table.NewRow();');
+                    row = new SqlDataRecord(columns);');
 
 
 INSERT INTO #Template
 ([LanguageId], [TypeId], [Template])
 VALUES
 (@langId, @TT_TABLE_TYPE_DT_ROWS_END, 
-N'                    table.Rows.Add(row);  
+N'                    table.Add(row);  
                 }
 ');
 
@@ -562,13 +586,13 @@ INSERT INTO #Template
 ([LanguageId], [TypeId], [Template])
 VALUES
 (@langId, @TT_TABLE_TYPE_DT_ROW, 
-N'                row["@{ColumnName}"] = @{Cast}record.@{Name};');
+N'                row.SetValue(@{ColumnNumber}, @{Cast}record.@{Name});');
 
 INSERT INTO #Template
 ([LanguageId], [TypeId], [Template])
 VALUES
 (@langId, @TT_TABLE_TYPE_DT_ROW_NULL, 
-N'                row["@{ColumnName}"] = (object)(@{Cast}record.@{Name}) ?? DBNull.Value;');
+N'                row.SetValue(@{ColumnNumber}, (object)(@{Cast}record.@{Name}) ?? DBNull.Value);');
 
 
 GO

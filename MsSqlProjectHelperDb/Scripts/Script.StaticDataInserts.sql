@@ -240,6 +240,14 @@ IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=43)
 INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
 VALUES (43, N'RsMappingSetup');
 
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=44) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (44, N'TableTypeDtColumnIdentity');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=45) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (45, N'TableTypeDtColumnPrecisionScale');
+
 
 --table [Enum].[NameType]
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -450,4 +458,4 @@ VALUES (1, 9, 1);
 
 
 
--- Completion time: 2024-02-21T17:37:54.3949189+00:00
+-- Completion time: 2024-02-23T18:36:24.0915830+00:00
