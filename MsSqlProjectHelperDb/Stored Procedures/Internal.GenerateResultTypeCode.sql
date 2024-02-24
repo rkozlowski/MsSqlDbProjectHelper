@@ -74,8 +74,8 @@ BEGIN
 
 	DECLARE @vars [Internal].[Variable];
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'ClassName', @typeName);
-	INSERT INTO @vars ([Name], [Value]) VALUES (N'SpSchema', QUOTENAME(@spSchema));
-	INSERT INTO @vars ([Name], [Value]) VALUES (N'SpName', QUOTENAME(@spName));
+	INSERT INTO @vars ([Name], [Value]) VALUES (N'SpSchema', [Internal].[EscapeString](@langId, QUOTENAME(@spSchema)));
+	INSERT INTO @vars ([Name], [Value]) VALUES (N'SpName', [Internal].[EscapeString](@langId, QUOTENAME(@spName)));
 	
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'ClassAccess', N'public');
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'PropertyAccess', N'public');

@@ -63,8 +63,8 @@ BEGIN
 
 	DECLARE @vars [Internal].[Variable];
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'EnumName', @enumName);	
-	INSERT INTO @vars ([Name], [Value]) VALUES (N'EnumSchema', QUOTENAME(@enumSchema));	
-	INSERT INTO @vars ([Name], [Value]) VALUES (N'EnumTable', QUOTENAME(@enumTable));
+	INSERT INTO @vars ([Name], [Value]) VALUES (N'EnumSchema', [Internal].[EscapeString](@langId, QUOTENAME(@enumSchema)));	
+	INSERT INTO @vars ([Name], [Value]) VALUES (N'EnumTable', [Internal].[EscapeString](@langId, QUOTENAME(@enumTable)));
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'EnumAccess', N'public');
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'Name', NULL);
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'Value', NULL);
