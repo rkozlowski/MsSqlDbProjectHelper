@@ -33,6 +33,7 @@ BEGIN
 	DECLARE @TT_WRAPPER_END2 TINYINT = 22;
 	DECLARE @TT_WRAPPER_RETURN_PARAM_DEC TINYINT = 23;
 	DECLARE @TT_WRAPPER_PARAM_PRE_EXEC_TABLE_TYPE TINYINT = 27;
+    DECLARE @TT_WRAPPER_EXEC_RS_RV TINYINT = 46;
 
 	DECLARE @C_PASCAL_CASE TINYINT = 1;
 	DECLARE @C_CAMEL_CASE TINYINT = 2;
@@ -41,7 +42,10 @@ BEGIN
 	DECLARE @C_UPPER_SNAKE_CASE TINYINT = 5;
 
 	DECLARE @LO_GENERATE_STATIC_CLASS BIGINT = 1;
-	DECLARE @LO_TREAT_OUTPUT_PARAMS_AS_INPUT_OUTPUT BIGINT = 2;
+    DECLARE @LO_TREAT_OUTPUT_PARAMS_AS_INPUT_OUTPUT BIGINT = 2;
+    DECLARE @LO_CAPTURE_RETURN_VALUE_FOR_RESULT_SET_STORED_PROCEDURES BIGINT = 4;
+    DECLARE @LO_TARGET_CLASSIC_DOT_NET BIGINT = 65536;
+    DECLARE @LO_USE_SYNC_WRAPPERS BIGINT = 131072;
 
 	DECLARE @NT_CLASS TINYINT = 1;
 	DECLARE @NT_METHOD TINYINT = 2;
@@ -57,6 +61,7 @@ BEGIN
 	DECLARE @spSchema NVARCHAR(128);
 	DECLARE @spName NVARCHAR(128);
 	DECLARE @hasResultSet BIT;
+    DECLARE @hasUnknownResultSet BIT;
 	DECLARE @resultType NVARCHAR(200);
 	
 
@@ -78,8 +83,9 @@ BEGIN
 
 	--DECLARE @genStaticClass BIT; 
 	DECLARE @treatOutputParamAsInputOutput BIT = CASE WHEN (@langOptions & @LO_TREAT_OUTPUT_PARAMS_AS_INPUT_OUTPUT) = @LO_TREAT_OUTPUT_PARAMS_AS_INPUT_OUTPUT THEN 1 ELSE 0 END;
+    DECLARE @captureRetValForRsStoredProc BIT = CASE WHEN (@langOptions & @LO_CAPTURE_RETURN_VALUE_FOR_RESULT_SET_STORED_PROCEDURES) = @LO_CAPTURE_RETURN_VALUE_FOR_RESULT_SET_STORED_PROCEDURES THEN 1 ELSE 0 END;
 
-	SELECT @wrapperName=sp.[WrapperName], @spSchema=sp.[Schema], @spName=sp.[Name], @hasResultSet=sp.[HasResultSet], @resultType=[ResultType]
+	SELECT @wrapperName=sp.[WrapperName], @spSchema=sp.[Schema], @spName=sp.[Name], @hasResultSet=sp.[HasResultSet], @resultType=[ResultType], @hasUnknownResultSet=sp.[HasUnknownResultSet]
 	FROM #StoredProc sp 
 	WHERE sp.[Id]=@spId;
 
@@ -97,6 +103,8 @@ BEGIN
 		RETURN @rc;
 	END
 
+    DECLARE @resultSetWithReturnValue BIT = CASE WHEN @hasUnknownResultSet=1 OR (@hasResultSet=1 AND @captureRetValForRsStoredProc=1) THEN 1 ELSE 0 END;
+
 	DECLARE @methodAccess NVARCHAR(200) = N'public';
 
 	DECLARE @resultTypeSingle NVARCHAR(200) = @resultType;
@@ -113,7 +121,8 @@ BEGIN
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'SpName', [Internal].[EscapeString](@langId, QUOTENAME(@spName)));
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'ResultType', @resultType);
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'ResultTypeSingle', @resultTypeSingle);
-	INSERT INTO @vars ([Name], [Value]) VALUES (N'ResultVarName', CASE WHEN @hasResultSet=1 THEN N'result' ELSE 'returnValue' END);
+	INSERT INTO @vars ([Name], [Value]) VALUES (N'ResultVarName', CASE WHEN @hasResultSet=1 THEN N'result' ELSE N'returnValue' END);
+    INSERT INTO @vars ([Name], [Value]) VALUES (N'RetValVarName', N'returnValue');
 	
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'MethodAccess', @methodAccess);
 	
@@ -133,10 +142,11 @@ BEGIN
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'TableType', NULL);	
 	
 	DECLARE @id INT = (SELECT MIN([Id]) FROM #StoredProcParam WHERE [StoredProcId]=@spId AND [IsOutput]=1);
-	UPDATE @vars SET [Value]=CASE WHEN @id IS NOT NULL THEN N',' ELSE N'' END WHERE [Name]=N'Sep';
-	INSERT INTO @vars ([Name], [Value]) VALUES (N'TupleStart', CASE WHEN @id IS NOT NULL THEN N'(' ELSE N'' END);
-	INSERT INTO @vars ([Name], [Value]) VALUES (N'TupleEnd', CASE WHEN @id IS NOT NULL THEN N')' ELSE N'' END);
-	INSERT INTO @vars ([Name], [Value]) VALUES (N'ResultVarNameTuple', CASE WHEN @id IS NOT NULL THEN CASE WHEN @hasResultSet=1 THEN N' Result' ELSE ' ReturnValue' END ELSE N'' END);
+	UPDATE @vars SET [Value]=CASE WHEN @id IS NOT NULL OR @resultSetWithReturnValue=1 THEN N',' ELSE N'' END WHERE [Name]=N'Sep';
+	
+    INSERT INTO @vars ([Name], [Value]) VALUES (N'TupleStart', CASE WHEN @id IS NOT NULL OR @resultSetWithReturnValue=1 THEN N'(' ELSE N'' END);
+	INSERT INTO @vars ([Name], [Value]) VALUES (N'TupleEnd', CASE WHEN @id IS NOT NULL OR @resultSetWithReturnValue=1 THEN N')' ELSE N'' END);
+	INSERT INTO @vars ([Name], [Value]) VALUES (N'ResultVarNameTuple', CASE WHEN @id IS NOT NULL OR @resultSetWithReturnValue=1 THEN CASE WHEN @hasResultSet=1 THEN N' Result' ELSE ' ReturnValue' END ELSE N'' END);
 
 	INSERT INTO #Output ([Text])
 	SELECT c.[Text]
@@ -157,6 +167,33 @@ BEGIN
 	DECLARE @precision NVARCHAR(100);
 	DECLARE @scale NVARCHAR(100);
 	
+    IF @resultSetWithReturnValue=1
+    BEGIN
+        UPDATE @vars
+		SET [Value]=NULL
+		WHERE [Name]=N'Name';
+		UPDATE @vars
+		SET [Value]=N'int'
+		WHERE [Name]=N'Type';
+		UPDATE @vars
+		SET [Value]=[Internal].[GetName](@projectId, @NT_TUPLE_FIELD, N'returnValue', NULL)
+		WHERE [Name]=N'ParamName';		
+		
+		
+		IF @id IS NULL
+		BEGIN
+			UPDATE @vars
+			SET [Value]=''
+			WHERE [Name]=N'Sep';
+		END
+
+		INSERT INTO #Output ([Text])
+		SELECT c.[Text]
+		FROM [dbo].[Template] t
+		CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
+		WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_WRAPPER_RETURN_PARAM_DEC)
+		ORDER BY c.[Id];
+    END
 	
 
 	WHILE @id IS NOT NULL
@@ -334,7 +371,8 @@ BEGIN
 	SELECT c.[Text]
 	FROM [dbo].[Template] t
 	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, CASE WHEN @hasResultSet=1 THEN @TT_WRAPPER_EXEC_RS ELSE @TT_WRAPPER_EXEC END)
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, 
+    CASE WHEN @hasResultSet=0 THEN @TT_WRAPPER_EXEC WHEN @resultSetWithReturnValue=1 THEN @TT_WRAPPER_EXEC_RS_RV ELSE  @TT_WRAPPER_EXEC_RS END)
 	ORDER BY c.[Id];
 
 	
@@ -391,7 +429,7 @@ BEGIN
 	SELECT @id=MIN([Id]) FROM #StoredProcParam WHERE [StoredProcId]=@spId AND [IsOutput]=1;
 	SELECT @lastId=MAX([Id]) FROM #StoredProcParam WHERE [StoredProcId]=@spId AND [IsOutput]=1;
 	
-	UPDATE @vars SET [Value]=CASE WHEN @id IS NOT NULL THEN ',' ELSE '' END WHERE [Name]=N'Sep';
+	UPDATE @vars SET [Value]=CASE WHEN @id IS NOT NULL OR @resultSetWithReturnValue=1 THEN ',' ELSE '' END WHERE [Name]=N'Sep';
 	
 	INSERT INTO #Output ([Text])
 	SELECT c.[Text]
@@ -400,7 +438,34 @@ BEGIN
 	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_WRAPPER_END)
 	ORDER BY c.[Id];
 
-	
+	IF @resultSetWithReturnValue=1
+    BEGIN
+        UPDATE @vars
+		SET [Value]=NULL
+		WHERE [Name]=N'Name';
+		UPDATE @vars
+		SET [Value]=N'int'
+		WHERE [Name]=N'Type';
+		UPDATE @vars
+		SET [Value]=N'returnValue'
+		WHERE [Name]=N'ParamName';		
+		
+		
+		IF @id IS NULL
+		BEGIN
+			UPDATE @vars
+			SET [Value]=''
+			WHERE [Name]=N'Sep';
+		END
+
+		INSERT INTO #Output ([Text])
+		SELECT c.[Text]
+		FROM [dbo].[Template] t
+		CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
+		WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_WRAPPER_RETURN_PARAM)
+		ORDER BY c.[Id];
+    END
+    
 
 	WHILE @id IS NOT NULL
 	BEGIN		

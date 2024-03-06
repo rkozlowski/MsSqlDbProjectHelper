@@ -15,8 +15,11 @@
     [DefaultDatabase]               NVARCHAR (128) NULL,
     CONSTRAINT [PK_Project] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [FK_Project_ClassAccess] FOREIGN KEY ([ClassAccessId]) REFERENCES [Enum].[ClassAccess] ([Id]),
-    CONSTRAINT [FK_Project_Language] FOREIGN KEY ([LanguageId]) REFERENCES [Enum].[Language] ([Id])
+    CONSTRAINT [FK_Project_Language] FOREIGN KEY ([LanguageId]) REFERENCES [Enum].[Language] ([Id]),
+    CONSTRAINT [FK_Project_ParamEnumMapping] FOREIGN KEY ([ParamEnumMappingId]) REFERENCES [Enum].[ParamEnumMapping] ([Id])
 );
+
+
 
 
 

@@ -68,6 +68,7 @@
     <Folder Include="Security\" />
     <Folder Include="Scripts" />
     <Folder Include="DeploymentScripts" />
+    <Folder Include="Views\" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Functions\dbo.DelimitedSplitN4K.sql" />
@@ -116,7 +117,6 @@
     <Build Include="Security\Project.sql" />
     <Build Include="Security\Internal.sql" />
     <Build Include="Security\Enum.sql" />
-    <Build Include="Functions\Internal.GetCurrentVersion.sql" />
     <None Include="DeploymentScripts\MsSqlProjectHelperDb_FullDeploy_v_0.4.sql" />
     <None Include="DeploymentScripts\MsSqlProjectHelperDb_Upgrade_v_0.3_to_v_0.4.sql" />
     <Build Include="Tables\Enum.NameType.sql" />
@@ -133,6 +133,13 @@
     <None Include="DeploymentScripts\MsSqlProjectHelperDb_Upgrade_v_0.5.1_to_v_0.5.2.sql" />
     <None Include="DeploymentScripts\MsSqlProjectHelperDb_FullDeploy_v_0.5.3.sql" />
     <None Include="DeploymentScripts\MsSqlProjectHelperDb_Upgrade_v_0.5.2_to_v_0.5.3.sql" />
+    <Build Include="Functions\Internal.GetLanguageOptionsString.sql" />
+    <Build Include="Stored Procedures\Project.UpdateProject.sql" />
+    <Build Include="Views\View.Project.sql" />
+    <Build Include="Security\View.sql" />
+    <Build Include="Functions\DbInfo.GetName.sql" />
+    <Build Include="Functions\DbInfo.GetCurrentVersion.sql" />
+    <Build Include="Security\DbInfo.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Scripts\Script.PostDeployment.sql" />

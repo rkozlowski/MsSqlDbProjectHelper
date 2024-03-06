@@ -1,4 +1,5 @@
-﻿CREATE FUNCTION [Internal].[GetCurrentVersion]
+﻿
+CREATE FUNCTION [DbInfo].[GetCurrentVersion]
 (	
 )
 RETURNS VARCHAR(50)

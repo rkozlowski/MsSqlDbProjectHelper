@@ -11,6 +11,13 @@ BEGIN
 	VALUES (NULL, 'TreatOutputParamsAsInputOutput', 0x0000000000000002);
 END
 
+
+IF NOT EXISTS (SELECT 1 FROM [dbo].[LanguageOption] WHERE [LanguageId] IS NULL AND [Name]='CaptureReturnValueForResultSetStoredProcedures')
+BEGIN
+	INSERT INTO [dbo].[LanguageOption] ([LanguageId], [Name], [Value])
+	VALUES (NULL, 'CaptureReturnValueForResultSetStoredProcedures', 0x0000000000000004);
+END
+
 DECLARE @langId TINYINT = (SELECT [Id] FROM [Enum].[Language] WHERE [Name]='c#');
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[LanguageOption] WHERE [LanguageId]=@langId AND [Name]='TargetClassicDotNet')

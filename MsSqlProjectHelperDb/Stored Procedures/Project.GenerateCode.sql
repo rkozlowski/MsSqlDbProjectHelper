@@ -109,6 +109,7 @@ BEGIN
         [Name] NVARCHAR(128) NOT NULL,
         [WrapperName] NVARCHAR(200) NULL,
         [HasResultSet] BIT NOT NULL DEFAULT (0),
+        [HasUnknownResultSet] BIT NOT NULL DEFAULT (0),
         [ResultType] NVARCHAR(200) NOT NULL DEFAULT(N'int'),
         UNIQUE ([Schema], [Name])
     );
@@ -137,15 +138,15 @@ BEGIN
 
     DROP TABLE IF EXISTS #SingleStoredProcResultSet;
     CREATE TABLE #SingleStoredProcResultSet (
-        [is_hidden] BIT NOT NULL,
-        [column_ordinal] INT NOT NULL,
+        [is_hidden] BIT NULL,
+        [column_ordinal] INT NULL,
         [name] SYSNAME NULL,
-        [is_nullable] BIT NOT NULL,
-        [system_type_id] INT NOT NULL,
+        [is_nullable] BIT NULL,
+        [system_type_id] INT NULL,
         [system_type_name] NVARCHAR(256) NULL,
-        [max_length] SMALLINT NOT NULL,
-        [precision] TINYINT NOT NULL,
-        [scale] TINYINT NOT NULL,
+        [max_length] SMALLINT NULL,
+        [precision] TINYINT NULL,
+        [scale] TINYINT NULL,
         [collation_name] SYSNAME NULL,
         [user_type_id] INT NULL,
         [user_type_database] SYSNAME NULL,
@@ -156,9 +157,9 @@ BEGIN
         [xml_collection_database] SYSNAME NULL,
         [xml_collection_schema] SYSNAME NULL,
         [xml_collection_name] SYSNAME NULL,
-        [is_xml_document] BIT NOT NULL,
-        [is_case_sensitive] BIT NOT NULL,
-        [is_fixed_length_clr_type] BIT NOT NULL,
+        [is_xml_document] BIT NULL,
+        [is_case_sensitive] BIT NULL,
+        [is_fixed_length_clr_type] BIT NULL,
         [source_server] SYSNAME NULL,
         [source_database] SYSNAME NULL,
         [source_schema] SYSNAME NULL,
@@ -172,10 +173,18 @@ BEGIN
         [ordinal_in_order_by_list] SMALLINT NULL,
         [order_by_list_length] SMALLINT NULL,
         [order_by_is_descending] SMALLINT NULL,
+        /*
         [tds_type_id] INT NOT NULL,
         [tds_length] INT NOT NULL,
         [tds_collation_id] INT NULL,
         [tds_collation_sort_id] TINYINT NULL
+        */
+        [error_number] INT NULL,
+        [error_severity] INT NULL,
+        [error_state] INT NULL,
+        [error_message] NVARCHAR(MAX) NULL,
+        [error_type] INT NULL,
+        [error_type_desc] NVARCHAR(60) NULL
     );
 
     DROP TABLE IF EXISTS #StoredProcResultSet;
@@ -308,11 +317,16 @@ BEGIN
     SET sp.[HasResultSet]=1, sp.[ResultType]=[Internal].[GetName](@projectId, @NT_CLASS, sp.[WrapperName] + N'Result', NULL)
     FROM #StoredProc sp
     WHERE EXISTS (SELECT 1 FROM #StoredProcResultSet rs WHERE rs.[StoredProcId]=sp.[Id]);
+
+    UPDATE sp
+    SET sp.[HasResultSet]=1, sp.[ResultType]=N'dynamic'
+    FROM #StoredProc sp
+    WHERE sp.[HasResultSet]=0 AND sp.[HasUnknownResultSet]=1;
     
     INSERT INTO #StoredProcResultType ([StoredProcId], [Name])
     SELECT [Id], [ResultType]
     FROM #StoredProc
-    WHERE [HasResultSet]=1;
+    WHERE [HasResultSet]=1 AND [HasUnknownResultSet]=0;
 
     UPDATE #StoredProcParam SET [ParamName]=[Internal].[GetName](@projectId, @NT_PARAMETER, [Name], NULL);
 

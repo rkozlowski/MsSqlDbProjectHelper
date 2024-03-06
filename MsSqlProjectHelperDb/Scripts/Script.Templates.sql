@@ -57,9 +57,11 @@ DECLARE @TT_STATIC_CTOR_END TINYINT = 42;
 DECLARE @TT_RS_MAPPING_SETUP TINYINT = 43;
 DECLARE @TT_TABLE_TYPE_DT_COLUMN_IDENTITY TINYINT = 44;
 DECLARE @TT_TABLE_TYPE_DT_COLUMN_PRECISION_SCALE TINYINT = 45;
+DECLARE @TT_WRAPPER_EXEC_RS_RV TINYINT = 46;
 
 DECLARE @LO_GENERATE_STATIC_CLASS BIGINT = 1;
 DECLARE @LO_TREAT_OUTPUT_PARAMS_AS_INPUT_OUTPUT BIGINT = 2;
+DECLARE @LO_CAPTURE_RETURN_VALUE_FOR_RESULT_SET_STORED_PROCEDURES BIGINT = 4;
 DECLARE @LO_TARGET_CLASSIC_DOT_NET BIGINT = 65536;
 DECLARE @LO_USE_SYNC_WRAPPERS BIGINT = 131072;
 
@@ -388,6 +390,25 @@ VALUES
 ');
 
 INSERT INTO #Template
+([LanguageId], [TypeId], [Template])
+VALUES
+(@langId, @TT_WRAPPER_EXEC_RS_RV, N'            p.Add("@returnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            using (var connection = GetDbConnection())
+            {
+                await connection.OpenAsync();
+
+                var queryResult = await connection.QueryAsync<@{ResultTypeSingle}>("@{SpSchema}.@{SpName}", p, commandTimeout: DefaultCommandTimeoutSec, commandType: CommandType.StoredProcedure);
+
+                connection.Close();
+                @{ResultVarName} = queryResult.ToList();
+            }
+            var @{RetValVarName} = p.Get<int>("@returnValue");
+');
+
+
+
+INSERT INTO #Template
 ([LanguageId], [TypeId], [LanguageOptions], [Template])
 VALUES
 (@langId, @TT_WRAPPER_EXEC, @LO_USE_SYNC_WRAPPERS, 
@@ -417,6 +438,23 @@ N'
                 connection.Close();
                 @{ResultVarName} = queryResult.ToList();
             }
+');
+
+INSERT INTO #Template
+([LanguageId], [TypeId], [LanguageOptions], [Template])
+VALUES
+(@langId, @TT_WRAPPER_EXEC_RS_RV, @LO_USE_SYNC_WRAPPERS,
+N'            p.Add("@returnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+            using (var connection = GetDbConnection())
+            {
+                connection.Open();
+
+                var queryResult = connection.Query<@{ResultTypeSingle}>("@{SpSchema}.@{SpName}", p, commandTimeout: DefaultCommandTimeoutSec, commandType: CommandType.StoredProcedure);
+
+                connection.Close();
+                @{ResultVarName} = queryResult.ToList();
+            }
+            var @{RetValVarName} = p.Get<int>("@returnValue");
 ');
 
 INSERT INTO #Template

@@ -248,6 +248,10 @@ IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=45)
 INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
 VALUES (45, N'TableTypeDtColumnPrecisionScale');
 
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=46) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (46, N'WrapperExecRsRv');
+
 
 --table [Enum].[NameType]
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -458,4 +462,4 @@ VALUES (1, 9, 1);
 
 
 
--- Completion time: 2024-02-23T18:36:24.0915830+00:00
+-- Completion time: 2024-03-06T21:46:26.5702951+00:00
