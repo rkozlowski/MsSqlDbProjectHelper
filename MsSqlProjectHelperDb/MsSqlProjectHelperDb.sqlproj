@@ -140,6 +140,8 @@
     <Build Include="Functions\DbInfo.GetName.sql" />
     <Build Include="Functions\DbInfo.GetCurrentVersion.sql" />
     <Build Include="Security\DbInfo.sql" />
+    <None Include="DeploymentScripts\MsSqlProjectHelperDb_FullDeploy_v_0.6.sql" />
+    <None Include="DeploymentScripts\MsSqlProjectHelperDb_Upgrade_v_0.5.3_to_v_0.6.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Scripts\Script.PostDeployment.sql" />
