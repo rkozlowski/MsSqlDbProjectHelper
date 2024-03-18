@@ -1,6 +1,5 @@
-﻿CREATE SCHEMA [Internal]
+﻿CREATE SCHEMA [Parser]
     AUTHORIZATION [dbo];
-
 
 
 

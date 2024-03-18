@@ -69,6 +69,7 @@
     <Folder Include="Scripts" />
     <Folder Include="DeploymentScripts" />
     <Folder Include="Views\" />
+    <Folder Include="Sequences\" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Functions\dbo.DelimitedSplitN4K.sql" />
@@ -142,6 +143,41 @@
     <Build Include="Security\DbInfo.sql" />
     <None Include="DeploymentScripts\MsSqlProjectHelperDb_FullDeploy_v_0.6.sql" />
     <None Include="DeploymentScripts\MsSqlProjectHelperDb_Upgrade_v_0.5.3_to_v_0.6.sql" />
+    <Build Include="Tables\dbo.Number.sql" />
+    <Build Include="Tables\ParserEnum.TSqlStatementType.sql" />
+    <Build Include="Tables\ParserEnum.TSqlStatementPart.sql" />
+    <Build Include="Tables\ParserEnum.TSqlSequenceType.sql" />
+    <Build Include="Tables\ParserEnum.TSqlSeqElementType.sql" />
+    <Build Include="Tables\ParserEnum.TSqlKeyword.sql" />
+    <Build Include="Tables\ParserEnum.TSqlBlockType.sql" />
+    <Build Include="Tables\ParserEnum.TokenType.sql" />
+    <Build Include="Tables\ParserEnum.TokenSubtype.sql" />
+    <Build Include="Tables\ParserEnum.CharType.sql" />
+    <Build Include="Tables\Parser.Operator.sql" />
+    <Build Include="Tables\Parser.TSqlSeqElement.sql" />
+    <Build Include="Tables\Parser.CharTypeMap.sql" />
+    <Build Include="Tables\Parser.TSqlSequence.sql" />
+    <Build Include="Functions\Parser.IsWhitespace.sql" />
+    <Build Include="Functions\Parser.IsSpecial.sql" />
+    <Build Include="Functions\Parser.IsSeparator.sql" />
+    <Build Include="Functions\Parser.IsOperator.sql" />
+    <Build Include="Functions\Parser.IsLetter.sql" />
+    <Build Include="Functions\Parser.IsDigit.sql" />
+    <Build Include="Functions\Parser.IsDelimiter.sql" />
+    <Build Include="Functions\Parser.GetSequenceLength.sql" />
+    <Build Include="Functions\Parser.GetFullText.sql" />
+    <Build Include="Functions\Parser.GetCharType.sql" />
+    <Build Include="Functions\Parser.FindEndDelimiter.sql" />
+    <Build Include="Stored Procedures\Parser.TryDescribeFirstResultSetWorkaround.sql" />
+    <Build Include="Stored Procedures\Parser.TryParseSequence.sql" />
+    <Build Include="Stored Procedures\Parser.TokenizeTSql.sql" />
+    <Build Include="Stored Procedures\Parser.ParseTSql.sql" />
+    <Build Include="Stored Procedures\Parser.GetSeqElemIdRange.sql" />
+    <Build Include="Security\ParserEnum.sql" />
+    <Build Include="Security\Parser.sql" />
+    <Build Include="Sequences\Parser.TSqlSeqEl.sql" />
+    <None Include="DeploymentScripts\MsSqlProjectHelperDb_FullDeploy_v_0.7.sql" />
+    <None Include="DeploymentScripts\MsSqlProjectHelperDb_Upgrade_v_0.6_to_v_0.7.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Scripts\Script.PostDeployment.sql" />
@@ -154,5 +190,9 @@
     <None Include="MsSqlProjectHelperDb.FullDeploy.publish.publish.xml" />
     <None Include="MsSqlProjectHelperDb.Upgrade.publish.publish.publish.xml" />
     <None Include="Scripts\Script.LanguageOptions.sql" />
+    <None Include="Scripts\Script.Parser.StaticDataInsertsGen.sql" />
+    <None Include="Scripts\Script.Parser.DataInit.sql" />
+    <None Include="Scripts\Script.Parser.StaticDataInserts.sql" />
+    <None Include="Scripts\Script.Parser.Data.sql" />
   </ItemGroup>
 </Project>

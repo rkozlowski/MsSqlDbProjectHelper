@@ -13,10 +13,24 @@ BEGIN
 
 	DECLARE @rc INT;
 
-	DECLARE @RC_OK INT = 1;
+	DECLARE @RC_OK INT = 0;
 	DECLARE @RC_ERR_PROJECT INT = 21;
 	DECLARE @RC_ERR_DB INT = 22;
 	DECLARE @RC_ERR_LANG INT = 23;
+
+    DECLARE @DFRS_ERR_MISC INT = 1;
+    DECLARE @DFRS_ERR_SYNTAX INT = 2;
+    DECLARE @DFRS_ERR_CONFLICTING_RESULTS INT = 3;
+    DECLARE @DFRS_ERR_DYNAMIC_SQL INT = 4;
+    DECLARE @DFRS_ERR_CLR_PROCEDURE INT = 5;
+    DECLARE @DFRS_ERR_CLR_TRIGGER INT = 6;
+    DECLARE @DFRS_ERR_EXTENDED_PROCEDURE INT = 7;
+    DECLARE @DFRS_ERR_UNDECLARED_PARAMETER INT = 8;
+    DECLARE @DFRS_ERR_RECURSION INT = 9;
+    DECLARE @DFRS_ERR_TEMPORARY_TABLE INT = 10;
+    DECLARE @DFRS_ERR_UNSUPPORTED_STATEMENT INT = 11;
+    DECLARE @DFRS_ERR_OBJECT_TYPE_NOT_SUPPORTED INT = 12;
+    DECLARE @DFRS_ERR_OBJECT_DOES_NOT_EXIST INT = 13;
 
 	DECLARE @spSchema NVARCHAR(128);
 	DECLARE @spName NVARCHAR(128);
@@ -53,7 +67,7 @@ BEGIN
 
     DECLARE @tsql NVARCHAR(4000);
 
-	TRUNCATE TABLE #SingleStoredProcResultSet;
+    TRUNCATE TABLE #SingleStoredProcResultSet;
 	
 
 	SET @tsql = N'USE ' + QUOTENAME(@dbName) + N';
@@ -82,10 +96,41 @@ BEGIN
     DECLARE @frsErrorMessage NVARCHAR(MAX);
     DECLARE @frsErrorType INT;
     DECLARE @frsErrorTypeDesc NVARCHAR(60);
+
+    DECLARE	@returnValue int,
+        @spErrorMessage nvarchar(4000);
     
     SELECT @frsErrorNumber=frs.[error_number], @frsErrorSeverity=frs.[error_severity], @frsErrorState=frs.[error_state], @frsErrorMessage=frs.[error_message], 
         @frsErrorType=frs.[error_type], @frsErrorTypeDesc=frs.[error_type_desc]
     FROM #SingleStoredProcResultSet frs;
+
+    IF @frsErrorType IS NOT NULL AND @frsErrorType IN (@DFRS_ERR_TEMPORARY_TABLE, @DFRS_ERR_DYNAMIC_SQL, @DFRS_ERR_RECURSION, @DFRS_ERR_EXTENDED_PROCEDURE)
+    BEGIN
+        PRINT(N'SP: ' + QUOTENAME(@spSchema) + N'.' + QUOTENAME(@spName));
+        PRINT(N'Cannot determine result set');
+        PRINT(N'sys.dm_exec_describe_first_result_set returned error #' + LOWER(@frsErrorType)+ N': ' + ISNULL(@frsErrorTypeDesc, N'<NULL>'));
+        PRINT(N'Trying to get result set from a modified temporary copy of the stored procedure');
+        
+        EXEC @returnValue = [Parser].[TryDescribeFirstResultSetWorkaround] @projectId, @dbId,	@langId, @spId, @errorMessage = @spErrorMessage OUTPUT;
+        IF @returnValue<>@RC_OK
+        BEGIN
+            PRINT(N'Workaround failed: ' + LOWER(@returnValue) +': ' +ISNULL(@spErrorMessage, '<NULL>'));
+            SELECT * FROM #SingleStoredProcResultSet;
+        END
+        ELSE
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM #SingleStoredProcResultSet)
+            BEGIN
+                SELECT @frsErrorNumber=NULL, @frsErrorSeverity=NULL, @frsErrorState=NULL, @frsErrorMessage=NULL, @frsErrorMessage=NULL, @frsErrorType=NULL, @frsErrorTypeDesc=NULL;
+            END
+            ELSE
+            BEGIN
+                SELECT @frsErrorNumber=frs.[error_number], @frsErrorSeverity=frs.[error_severity], @frsErrorState=frs.[error_state], @frsErrorMessage=frs.[error_message], 
+                    @frsErrorType=frs.[error_type], @frsErrorTypeDesc=frs.[error_type_desc]
+                FROM #SingleStoredProcResultSet frs;
+            END
+        END
+    END
 
     IF @frsErrorType IS NOT NULL
     BEGIN
@@ -113,5 +158,5 @@ BEGIN
 	    ON @mapEnums=1 AND rs.[source_server] IS NULL AND rs.[source_database]=@dbName AND rs.[source_schema]=e.[ForeignSchema] AND rs.[source_table]=e.[ForeignTable] AND rs.[source_column]=e.[ForeignColumn]
 	    WHERE rs.[is_hidden]=0
 	    ORDER BY rs.[column_ordinal];
-	END
+	END    
 END

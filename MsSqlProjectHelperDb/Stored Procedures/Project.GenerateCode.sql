@@ -237,7 +237,7 @@ BEGIN
         [Scale] TINYINT NOT NULL,
         [IsIdentity] BIT NOT NULL,
         [EnumId] INT NULL,
-        [PropertyName] NVARCHAR(200) NULL,
+        [PropertyName] NVARCHAR(200) NULL
     );
 
     DECLARE    @retVal int;

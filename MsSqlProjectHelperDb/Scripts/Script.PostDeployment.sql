@@ -13,4 +13,9 @@ Post-Deployment Script
 :r .\Script.StaticDataInserts.sql
 :r .\Script.LanguageOptions.sql
 :r .\Script.Templates.sql
+
+:r .\Script.Parser.StaticDataInserts.sql
+:r .\Script.Parser.DataInit.sql
+:r .\Script.Parser.Data.sql
+
 :r .\Script.Version.sql
