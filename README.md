@@ -10,7 +10,7 @@ Helper database/tools for calling SQL Server stored procedures from C#
 1. Download the latest full deployment script from the release page:
    https://github.com/rkozlowski/MsSqlDbProjectHelper/releases/latest
 2. Create an empty database on your development SQL Server (SQL Server 2019 or newer).
-3. Open MsSqlProjectHelperDb_FullDeploy_v_0.7.sql script in SQL Server Management Studio.
+3. Open MsSqlProjectHelperDb_FullDeploy_v_0.7.1.sql script in SQL Server Management Studio.
 4. Switch to SQLCMD Mode (Menu `Query->SQLCMD Mode`).
 5. Change the database name in line 16 (`:setvar DatabaseName "MsSqlProjectHelperDb"`) to the name of your new database created in point 2.
 6. Execute the script.
@@ -32,11 +32,7 @@ EXEC @return_value = [Project].[CreateProject]
                                           -- (a database with definitions of the stored procedures)
     @enumSchema = N'Enum',                -- Name of the schema of the enum tables
     @storedProcSchema = N'Api',           -- Name of the schema of the stored procedures
-    @classAccess = N'public',             -- Class access
-    @generateAllStoredProcWrappers = 1,   -- Flag specifying if wrappers should be created
-                                          -- for all stored procedures in the @storedProcSchema
-    @generateAllEnumWrappers = 1,         -- Flag specifying if enums should be created
-                                          -- for all tables in the @enumSchema
+    @classAccess = N'public',             -- Class access    
     @language = N'c#',                    -- Only C# is supported
     @paramEnumMapping = 'EnumNameWithOrWithoutId',
                                           -- Mapping of stored procedure parameters to the enums:
