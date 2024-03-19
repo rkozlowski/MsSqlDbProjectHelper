@@ -6444,6 +6444,30 @@ ALTER TABLE [dbo].[ProjectStoredProc] WITH CHECK CHECK CONSTRAINT [FK_ProjectSto
 
 ALTER TABLE [dbo].[ProjectStoredProc] WITH CHECK CHECK CONSTRAINT [FK_ProjectStoredProc_Project];
 
+GO
+
+PRINT N'Converting existing projects to the new format...';
+
+DECLARE @NM_EXACT_MATCH TINYINT = 1;
+DECLARE @NM_PREFIX TINYINT = 2;
+DECLARE @NM_SUFFIX TINYINT = 3;
+DECLARE @NM_LIKE TINYINT = 4;
+DECLARE @NM_ANY TINYINT = 255;
+
+INSERT INTO [dbo].[ProjectEnum]
+([ProjectId], [Schema], [NameMatchId], [NamePattern], [EscChar], [IsSetOfFlags])
+SELECT p.[Id], p.[EnumSchema], @NM_ANY, NULL, NULL, 0
+FROM [dbo].[Project] p
+WHERE p.[EnumSchema] IS NOT NULL AND p.[GenerateAllEnumWrappers]=1;
+
+
+INSERT INTO [dbo].[ProjectStoredProc]
+([ProjectId], [Schema], [NameMatchId], [NamePattern], [EscChar], [LanguageOptionsReset], [LanguageOptionsSet])
+SELECT p.[Id], p.[StoredProcSchema], @NM_ANY, NULL, NULL, NULL, NULL
+FROM [dbo].[Project] p
+WHERE p.[StoredProcSchema] IS NOT NULL AND p.[GenerateAllStoredProcWrappers]=1;
+
+
 
 GO
 PRINT N'Update complete.';
