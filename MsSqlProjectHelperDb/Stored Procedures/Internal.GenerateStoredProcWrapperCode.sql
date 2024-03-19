@@ -81,11 +81,12 @@ BEGIN
 		RETURN @rc;
 	END
 
-	--DECLARE @genStaticClass BIT; 
-	DECLARE @treatOutputParamAsInputOutput BIT = CASE WHEN (@langOptions & @LO_TREAT_OUTPUT_PARAMS_AS_INPUT_OUTPUT) = @LO_TREAT_OUTPUT_PARAMS_AS_INPUT_OUTPUT THEN 1 ELSE 0 END;
-    DECLARE @captureRetValForRsStoredProc BIT = CASE WHEN (@langOptions & @LO_CAPTURE_RETURN_VALUE_FOR_RESULT_SET_STORED_PROCEDURES) = @LO_CAPTURE_RETURN_VALUE_FOR_RESULT_SET_STORED_PROCEDURES THEN 1 ELSE 0 END;
+	--DECLARE @genStaticClass BIT; 	
+    DECLARE @langOptionsReset BIGINT = NULL;
+    DECLARE @langOptionsSet BIGINT = NULL;
 
-	SELECT @wrapperName=sp.[WrapperName], @spSchema=sp.[Schema], @spName=sp.[Name], @hasResultSet=sp.[HasResultSet], @resultType=[ResultType], @hasUnknownResultSet=sp.[HasUnknownResultSet]
+	SELECT @wrapperName=sp.[WrapperName], @spSchema=sp.[Schema], @spName=sp.[Name], @hasResultSet=sp.[HasResultSet], @resultType=[ResultType], 
+        @hasUnknownResultSet=sp.[HasUnknownResultSet], @langOptionsReset=[LanguageOptionsReset], @langOptionsSet=[LanguageOptionsSet]
 	FROM #StoredProc sp 
 	WHERE sp.[Id]=@spId;
 
@@ -102,6 +103,19 @@ BEGIN
 		SELECT @rc = @RC_ERR_DB, @errorMessage=N'Database not found';
 		RETURN @rc;
 	END
+
+    IF @langOptionsReset IS NOT NULL
+    BEGIN
+        SET @langOptions &= ~@langOptionsReset;
+    END
+
+    IF @langOptionsSet IS NOT NULL
+    BEGIN
+        SET @langOptions |= @langOptionsSet;
+    END
+
+    DECLARE @treatOutputParamAsInputOutput BIT = CASE WHEN (@langOptions & @LO_TREAT_OUTPUT_PARAMS_AS_INPUT_OUTPUT) = @LO_TREAT_OUTPUT_PARAMS_AS_INPUT_OUTPUT THEN 1 ELSE 0 END;
+    DECLARE @captureRetValForRsStoredProc BIT = CASE WHEN (@langOptions & @LO_CAPTURE_RETURN_VALUE_FOR_RESULT_SET_STORED_PROCEDURES) = @LO_CAPTURE_RETURN_VALUE_FOR_RESULT_SET_STORED_PROCEDURES THEN 1 ELSE 0 END;
 
     DECLARE @resultSetWithReturnValue BIT = CASE WHEN @hasUnknownResultSet=1 OR (@hasResultSet=1 AND @captureRetValForRsStoredProc=1) THEN 1 ELSE 0 END;
 

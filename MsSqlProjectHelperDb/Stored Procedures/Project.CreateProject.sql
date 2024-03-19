@@ -7,8 +7,6 @@
 	@enumSchema NVARCHAR(128) = NULL,
 	@storedProcSchema NVARCHAR(128) = NULL,
 	@classAccess VARCHAR(200) = 'public',	
-	@generateAllStoredProcWrappers BIT = 1,
-	@generateAllEnumWrappers BIT = 1,
 	@language VARCHAR(200) = 'c#',
 	@paramEnumMapping VARCHAR(100) = NULL, 
 	@mapResultSetEnums BIT = 0,
@@ -27,6 +25,12 @@ BEGIN
 	DECLARE @RC_UNKNOWN_PEM INT = 3;
 	DECLARE @RC_DB_ERROR INT = 51;
 	DECLARE @RC_UNKNOWN_ERROR INT = 99;
+
+    DECLARE @NM_EXACT_MATCH TINYINT = 1;
+    DECLARE @NM_PREFIX TINYINT = 2;
+    DECLARE @NM_SUFFIX TINYINT = 3;
+    DECLARE @NM_LIKE TINYINT = 4;
+    DECLARE @NM_ANY TINYINT = 255;
 
 	DECLARE @rc INT = @RC_UNKNOWN_ERROR;
 	
@@ -54,6 +58,7 @@ BEGIN
 	END
 
 	DECLARE @languageOptionsVal BIGINT = [Internal].[GetLanguageOptions](@languageId, @languageOptions);
+    DECLARE @projectId SMALLINT;
 
 	BEGIN TRY
 		IF @tranCount = 0
@@ -62,12 +67,26 @@ BEGIN
 			SAVE TRANSACTION TrnSp; 
 
 		INSERT INTO [dbo].[Project] 
-		([Name], [NamespaceName], [ClassName], [ClassAccessId], [EnumSchema], [StoredProcSchema], [GenerateAllStoredProcWrappers], [GenerateAllEnumWrappers], [LanguageId],
-		[ParamEnumMappingId], [MapResultSetEnums], [LanguageOptions], [DefaultDatabase])
+		([Name], [NamespaceName], [ClassName], [ClassAccessId], [LanguageId], [ParamEnumMappingId], [MapResultSetEnums], [LanguageOptions], [DefaultDatabase])
 		VALUES
-        (@name, @namespaceName, @className, @classAccessId, @enumSchema, @storedProcSchema, @generateAllStoredProcWrappers, @generateAllEnumWrappers, @languageId,
-		@paramEnumMappingId, @mapResultSetEnums, @languageOptionsVal, @defaultDatabase);
+        (@name, @namespaceName, @className, @classAccessId, @languageId, @paramEnumMappingId, @mapResultSetEnums, @languageOptionsVal, @defaultDatabase);
+        SET @projectId=SCOPE_IDENTITY();
 
+        IF @enumSchema IS NOT NULL
+        BEGIN
+            INSERT INTO [dbo].[ProjectEnum] 
+            ([ProjectId], [Schema], [NameMatchId], [NamePattern], [EscChar], [IsSetOfFlags])
+            VALUES
+           (@projectId, @enumSchema, @NM_ANY, NULL, NULL, 0);
+        END
+
+        IF @storedProcSchema IS NOT NULL
+        BEGIN
+            INSERT INTO [dbo].[ProjectStoredProc]
+            ([ProjectId], [Schema], [NameMatchId], [NamePattern], [EscChar], [LanguageOptionsReset], [LanguageOptionsSet])
+            VALUES
+            (@projectId, @storedProcSchema, @NM_ANY, NULL, NULL, NULL, NULL);
+        END
 
 		IF @tranCount = 0    
 			COMMIT TRANSACTION

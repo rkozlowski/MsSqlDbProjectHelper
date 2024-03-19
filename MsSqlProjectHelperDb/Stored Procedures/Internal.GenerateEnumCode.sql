@@ -20,10 +20,11 @@ BEGIN
 	DECLARE @TT_ENUM_START TINYINT = 3;
 	DECLARE @TT_ENUM_END TINYINT = 4;
 	DECLARE @TT_ENUM_ENTRY TINYINT = 5;
+    DECLARE @TT_ENUM_START_FLAG TINYINT = 47;
 
 	DECLARE @className NVARCHAR(100);	
 	DECLARE @langOptions BIGINT;
-	
+	DECLARE @isSetOfFlags BIT;
 
 	SELECT @className=p.[ClassName], @langOptions=p.[LanguageOptions]	
 	FROM [dbo].[Project] p
@@ -41,7 +42,7 @@ BEGIN
 	DECLARE @enumTable NVARCHAR(128);
 	
 
-	SELECT @enumName=[EnumName], @enumSchema=[Schema], @enumTable=[Table]
+	SELECT @enumName=[EnumName], @enumSchema=[Schema], @enumTable=[Table], @isSetOfFlags=[IsSetOfFlags]
 	FROM #Enum	
 	WHERE [Id]=@enumId;
 
@@ -76,7 +77,9 @@ BEGIN
 	SELECT c.[Text]
 	FROM [dbo].[Template] t
 	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
-	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_ENUM_START)
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, 
+        CASE WHEN @isSetOfFlags=1 THEN @TT_ENUM_START_FLAG ELSE @TT_ENUM_START END
+        )
 	ORDER BY c.[Id];
 
 	DECLARE @id INT = (SELECT MIN([Id]) FROM #EnumVal WHERE [EnumId]=@enumId);

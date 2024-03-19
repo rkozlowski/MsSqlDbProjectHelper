@@ -14,16 +14,15 @@ BEGIN
 	DECLARE @RC_ERR_DB INT = 22;
 	DECLARE @RC_ERR_LANG INT = 23;
 
-	DECLARE @enumSchema NVARCHAR(128);
-	DECLARE @generateAll BIT;
-
-	SELECT @enumSchema = [EnumSchema], @generateAll=[GenerateAllEnumWrappers]
-	FROM [dbo].[Project]
-	WHERE [Id]=@projectId;
-
-	IF @enumSchema IS NULL OR @generateAll<>1
+    DECLARE @NM_EXACT_MATCH TINYINT = 1;
+    DECLARE @NM_PREFIX TINYINT = 2;
+    DECLARE @NM_SUFFIX TINYINT = 3;
+    DECLARE @NM_LIKE TINYINT = 4;
+    DECLARE @NM_ANY TINYINT = 255;
+	
+    IF NOT EXISTS (SELECT 1 FROM [dbo].[Project] WHERE [Id]=@projectId)
 	BEGIN
-		SELECT @rc = @RC_ERR_PROJECT, @errorMessage=N'Unknown project or unsupported project options';
+		SELECT @rc = @RC_ERR_PROJECT, @errorMessage=N'Unknown project';
 		RETURN @rc;
 	END
 
@@ -34,6 +33,30 @@ BEGIN
 		SELECT @rc = @RC_ERR_DB, @errorMessage=N'Database not found';
 		RETURN @rc;
 	END
+
+    DECLARE @enumSchemas NVARCHAR(4000);
+    SELECT @enumSchemas=STRING_AGG(QUOTENAME(e.[Schema], N''''), ',') FROM (SELECT DISTINCT [Schema] FROM [dbo].[ProjectEnum] WHERE [ProjectId]=@projectId) e;
+
+    IF NULLIF(LTRIM(@enumSchemas), '') IS NULL
+    BEGIN
+        SELECT @rc = @RC_OK;
+		RETURN @rc;
+    END
+
+    DROP TABLE IF EXISTS #EveryEnum;
+    CREATE TABLE #EveryEnum
+    (
+        [Id] INT NOT NULL IDENTITY (1, 1) PRIMARY KEY,        
+        [Schema] NVARCHAR(128) NOT NULL,
+        [Table] NVARCHAR(128) NOT NULL,        
+        [NameColumn] NVARCHAR(128) NOT NULL,
+        [ValueColumn] NVARCHAR(128) NOT NULL,
+        [EnumName] NVARCHAR(200) NULL,
+        [ValueType] NVARCHAR(128) NOT NULL,
+        [IsSetOfFlags] BIT NOT NULL DEFAULT (0),
+        [ProjectEnumId] INT NULL,
+        UNIQUE ([Schema], [Table])
+    );
 
     DECLARE @query NVARCHAR(4000);
 
@@ -56,12 +79,29 @@ BEGIN
 	SET @query += N'LEFT JOIN sys.columns idnc ON idnc.object_id=t.object_id AND idnc.is_identity=1 '
 	SET @query += N'LEFT JOIN sys.indexes ux2 ON ux2.object_id=t.object_id AND ux2.is_primary_key=0 AND ux2.is_unique=1 AND ux2.index_id<>ux.index_id '
 	SET @query += N'WHERE t.[Type]=''U'' AND idnc.column_id IS NULL AND pkc2.index_column_id IS NULL AND uxc2.index_column_id IS NULL AND ux2.index_id IS NULL '
-	SET @query += N'AND SCHEMA_NAME(t.schema_id)=''' + @enumSchema + N''' '
+	SET @query += N'AND SCHEMA_NAME(t.schema_id) IN (' + @enumSchemas + N') '
 	SET @query += N';
 	';
 	--PRINT(@query);
 	
-	INSERT INTO #Enum ([Schema], [Table], [NameColumn], [ValueColumn], [ValueType])
+	INSERT INTO #EveryEnum ([Schema], [Table], [NameColumn], [ValueColumn], [ValueType])
 	EXEC(@query);
 
+    -- now filter only selected enums
+
+    UPDATE e
+    SET e.[ProjectEnumId]=pe.[Id], e.[IsSetOfFlags]=pe.[IsSetOfFlags]
+    FROM #EveryEnum e
+    JOIN [dbo].[ProjectEnum] pe ON pe.[ProjectId]=@projectId AND pe.[Schema]=e.[Schema] AND [Internal].[IsNameMatch](e.[Table], pe.[NameMatchId], pe.[NamePattern], pe.[EscChar])=1
+    LEFT JOIN [dbo].[ProjectEnum] xpe ON xpe.[ProjectId]=@projectId AND xpe.[Schema]=e.[Schema] 
+    AND [Internal].[IsNameMatch](e.[Table], xpe.[NameMatchId], xpe.[NamePattern], xpe.[EscChar])=1
+    AND (xpe.[NameMatchId]<pe.[NameMatchId] OR (xpe.[NameMatchId]=pe.[NameMatchId] AND xpe.[Id]<pe.[Id]))
+    WHERE xpe.[Id] IS NULL;
+    
+    INSERT INTO #Enum ([Schema], [Table], [NameColumn], [ValueColumn], [ValueType], [IsSetOfFlags])
+    SELECT e.[Schema], e.[Table], e.[NameColumn], e.[ValueColumn], e.[ValueType], e.[IsSetOfFlags]
+    FROM #EveryEnum e
+    WHERE e.[ProjectEnumId] IS NOT NULL;
+
+    DROP TABLE IF EXISTS #EveryEnum;
 END

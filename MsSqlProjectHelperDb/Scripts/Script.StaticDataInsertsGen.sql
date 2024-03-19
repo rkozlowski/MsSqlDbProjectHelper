@@ -2,38 +2,38 @@
 
 
 SELECT CAST(N'IF NOT EXISTS (SELECT 1 FROM [Enum].[Language] WHERE [Id]=' + LOWER([Id]) + N') ' + CHAR(13) + CHAR(10) + N'INSERT INTO [Enum].[Language] ([Id], [Name]) ' 
-	  + CHAR(13) + CHAR(10) + N'VALUES (' + LOWER([Id]) + N', N' +  QUOTENAME([Name], N'''') + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(200)) [--table [Enum]].[Language]]]
+	  + CHAR(13) + CHAR(10) + N'VALUES (' + LOWER([Id]) + N', N' +  QUOTENAME([Name], N'''') + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(200)) [-- table [Enum]].[Language]]]
 FROM [Enum].[Language]
 ORDER BY [Id];
 
 
 SELECT CAST(N'IF NOT EXISTS (SELECT 1 FROM [Enum].[ClassAccess] WHERE [Id]=' + LOWER([Id]) + N') ' + CHAR(13) + CHAR(10) + N'INSERT INTO [Enum].[ClassAccess] ([Id], [Name]) ' 
-	  + CHAR(13) + CHAR(10) + N'VALUES (' + LOWER([Id]) + N', N' +  QUOTENAME([Name], N'''') + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(200)) [--table [Enum]].[ClassAccess]]]
+	  + CHAR(13) + CHAR(10) + N'VALUES (' + LOWER([Id]) + N', N' +  QUOTENAME([Name], N'''') + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(200)) [-- table [Enum]].[ClassAccess]]]
 FROM [Enum].[ClassAccess]
 ORDER BY [Id];
 
 SELECT CAST(N'IF NOT EXISTS (SELECT 1 FROM [Enum].[Casing] WHERE [Id]=' + LOWER([Id]) + N') ' + CHAR(13) + CHAR(10) + N'INSERT INTO [Enum].[Casing] ([Id], [Name]) ' 
-	  + CHAR(13) + CHAR(10) + N'VALUES (' + LOWER([Id]) + N', N' +  QUOTENAME([Name], N'''') + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(200)) [--table [Enum]].[Casing]]]
+	  + CHAR(13) + CHAR(10) + N'VALUES (' + LOWER([Id]) + N', N' +  QUOTENAME([Name], N'''') + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(200)) [-- table [Enum]].[Casing]]]
 FROM [Enum].[Casing]
 ORDER BY [Id];
 
 SELECT CAST(N'IF NOT EXISTS (SELECT 1 FROM [Enum].[ParamEnumMapping] WHERE [Id]=' + LOWER([Id]) + N') ' + CHAR(13) + CHAR(10) + N'INSERT INTO [Enum].[ParamEnumMapping] ([Id], [Name]) ' 
-	  + CHAR(13) + CHAR(10) + N'VALUES (' + LOWER([Id]) + N', N' +  QUOTENAME([Name], N'''') + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(200)) [--table [Enum]].[ParamEnumMapping]]]
+	  + CHAR(13) + CHAR(10) + N'VALUES (' + LOWER([Id]) + N', N' +  QUOTENAME([Name], N'''') + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(200)) [-- table [Enum]].[ParamEnumMapping]]]
 FROM [Enum].[ParamEnumMapping]
 ORDER BY [Id];
 
 SELECT CAST(N'IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=' + LOWER([Id]) + N') ' + CHAR(13) + CHAR(10) + N'INSERT INTO [Enum].[TemplateType] ([Id], [Name]) ' 
-	  + CHAR(13) + CHAR(10) + N'VALUES (' + LOWER([Id]) + N', N' +  QUOTENAME([Name], N'''') + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(200)) [--table [Enum]].[TemplateType]]]
+	  + CHAR(13) + CHAR(10) + N'VALUES (' + LOWER([Id]) + N', N' +  QUOTENAME([Name], N'''') + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(200)) [-- table [Enum]].[TemplateType]]]
 FROM [Enum].[TemplateType]
 ORDER BY [Id];
 
 SELECT CAST(N'IF NOT EXISTS (SELECT 1 FROM [Enum].[NameType] WHERE [Id]=' + LOWER([Id]) + N') ' + CHAR(13) + CHAR(10) + N'INSERT INTO [Enum].[NameType] ([Id], [Name]) ' 
-	  + CHAR(13) + CHAR(10) + N'VALUES (' + LOWER([Id]) + N', N' +  QUOTENAME([Name], N'''') + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(200)) [--table [Enum]].[NameType]]]
+	  + CHAR(13) + CHAR(10) + N'VALUES (' + LOWER([Id]) + N', N' +  QUOTENAME([Name], N'''') + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(200)) [-- table [Enum]].[NameType]]]
 FROM [Enum].[NameType]
 ORDER BY [Id];
 
 SELECT CAST(N'IF NOT EXISTS (SELECT 1 FROM [Flag].[CodeGenOption] WHERE [Value]=' + LOWER([Value]) + N') ' + CHAR(13) + CHAR(10) + N'INSERT INTO [Flag].[CodeGenOption] ([Value], [Name], [IsSingleBit]) ' 
-	  + CHAR(13) + CHAR(10) + N'VALUES (' + LOWER([Value]) + N', N' +  QUOTENAME([Name], N'''') + N', '+ LOWER([IsSingleBit])  + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(200)) [--table [Flag]].[CodeGenOption]]]
+	  + CHAR(13) + CHAR(10) + N'VALUES (' + LOWER([Value]) + N', N' +  QUOTENAME([Name], N'''') + N', '+ LOWER([IsSingleBit])  + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(200)) [-- table [Flag]].[CodeGenOption]]]
 FROM [Flag].[CodeGenOption]
 ORDER BY [Value];
 
@@ -54,3 +54,7 @@ SELECT CAST(N'IF NOT EXISTS (SELECT 1 FROM [dbo].[LanguageNameCasing] WHERE [Lan
 FROM [dbo].[LanguageNameCasing]
 ORDER BY [Id]
 
+SELECT CAST(N'IF NOT EXISTS (SELECT 1 FROM [Enum].[NameMatch] WHERE [Id]=' + LOWER([Id]) + N') ' + CHAR(13) + CHAR(10) + N'INSERT INTO [Enum].[NameMatch] ([Id], [Name]) ' 
+	  + CHAR(13) + CHAR(10) + N'VALUES (' + LOWER([Id]) + N', N' +  QUOTENAME([Name], N'''') + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(200)) [-- table [Enum]].[NameMatch]]]
+FROM [Enum].[NameMatch]
+ORDER BY [Id];

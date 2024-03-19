@@ -1,11 +1,11 @@
-﻿--table [Enum].[Language]
+﻿-- table [Enum].[Language]
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 IF NOT EXISTS (SELECT 1 FROM [Enum].[Language] WHERE [Id]=1) 
 INSERT INTO [Enum].[Language] ([Id], [Name]) 
 VALUES (1, N'c#');
 
 
---table [Enum].[ClassAccess]
+-- table [Enum].[ClassAccess]
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 IF NOT EXISTS (SELECT 1 FROM [Enum].[ClassAccess] WHERE [Id]=1) 
 INSERT INTO [Enum].[ClassAccess] ([Id], [Name]) 
@@ -32,7 +32,7 @@ INSERT INTO [Enum].[ClassAccess] ([Id], [Name])
 VALUES (6, N'private protected');
 
 
---table [Enum].[Casing]
+-- table [Enum].[Casing]
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 IF NOT EXISTS (SELECT 1 FROM [Enum].[Casing] WHERE [Id]=1) 
 INSERT INTO [Enum].[Casing] ([Id], [Name]) 
@@ -55,7 +55,7 @@ INSERT INTO [Enum].[Casing] ([Id], [Name])
 VALUES (5, N'UpperSnakeCase');
 
 
---table [Enum].[ParamEnumMapping]
+-- table [Enum].[ParamEnumMapping]
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 IF NOT EXISTS (SELECT 1 FROM [Enum].[ParamEnumMapping] WHERE [Id]=1) 
 INSERT INTO [Enum].[ParamEnumMapping] ([Id], [Name]) 
@@ -74,7 +74,7 @@ INSERT INTO [Enum].[ParamEnumMapping] ([Id], [Name])
 VALUES (4, N'EnumNameWithOrWithoutId');
 
 
---table [Enum].[TemplateType]
+-- table [Enum].[TemplateType]
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=1) 
 INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
@@ -252,8 +252,12 @@ IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=46)
 INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
 VALUES (46, N'WrapperExecRsRv');
 
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=47) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (47, N'EnumStartFlag');
 
---table [Enum].[NameType]
+
+-- table [Enum].[NameType]
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 IF NOT EXISTS (SELECT 1 FROM [Enum].[NameType] WHERE [Id]=1) 
 INSERT INTO [Enum].[NameType] ([Id], [Name]) 
@@ -292,7 +296,7 @@ INSERT INTO [Enum].[NameType] ([Id], [Name])
 VALUES (9, N'EnumMember');
 
 
---table [Flag].[CodeGenOption]
+-- table [Flag].[CodeGenOption]
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 IF NOT EXISTS (SELECT 1 FROM [Flag].[CodeGenOption] WHERE [Value]=0) 
 INSERT INTO [Flag].[CodeGenOption] ([Value], [Name], [IsSingleBit]) 
@@ -461,5 +465,28 @@ INSERT INTO [dbo].[LanguageNameCasing] ([LanguageId], [NameTypeId], [CasingId])
 VALUES (1, 9, 1);
 
 
+-- table [Enum].[NameMatch]
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS (SELECT 1 FROM [Enum].[NameMatch] WHERE [Id]=1) 
+INSERT INTO [Enum].[NameMatch] ([Id], [Name]) 
+VALUES (1, N'ExactMatch');
 
--- Completion time: 2024-03-06T21:46:26.5702951+00:00
+IF NOT EXISTS (SELECT 1 FROM [Enum].[NameMatch] WHERE [Id]=2) 
+INSERT INTO [Enum].[NameMatch] ([Id], [Name]) 
+VALUES (2, N'Prefix');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[NameMatch] WHERE [Id]=3) 
+INSERT INTO [Enum].[NameMatch] ([Id], [Name]) 
+VALUES (3, N'Suffix');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[NameMatch] WHERE [Id]=4) 
+INSERT INTO [Enum].[NameMatch] ([Id], [Name]) 
+VALUES (4, N'Like');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[NameMatch] WHERE [Id]=255) 
+INSERT INTO [Enum].[NameMatch] ([Id], [Name]) 
+VALUES (255, N'Any');
+
+
+
+-- Completion time: 2024-03-19T20:07:17.1809278+00:00

@@ -178,6 +178,12 @@
     <Build Include="Sequences\Parser.TSqlSeqEl.sql" />
     <None Include="DeploymentScripts\MsSqlProjectHelperDb_FullDeploy_v_0.7.sql" />
     <None Include="DeploymentScripts\MsSqlProjectHelperDb_Upgrade_v_0.6_to_v_0.7.sql" />
+    <Build Include="Tables\Enum.NameMatch.sql" />
+    <Build Include="Tables\dbo.ProjectStoredProc.sql" />
+    <Build Include="Tables\dbo.ProjectEnum.sql" />
+    <Build Include="Functions\Internal.IsNameMatch.sql" />
+    <None Include="DeploymentScripts\MsSqlProjectHelperDb_FullDeploy_v_0.7.1.sql" />
+    <None Include="DeploymentScripts\MsSqlProjectHelperDb_Upgrade_v_0.7_to_v_0.7.1.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Scripts\Script.PostDeployment.sql" />
@@ -194,5 +200,9 @@
     <None Include="Scripts\Script.Parser.DataInit.sql" />
     <None Include="Scripts\Script.Parser.StaticDataInserts.sql" />
     <None Include="Scripts\Script.Parser.Data.sql" />
+    <None Include="Scripts\Script.PreUpgradeVersionCheck.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <PreDeploy Include="Scripts\Script.PreDeployment1.sql" />
   </ItemGroup>
 </Project>

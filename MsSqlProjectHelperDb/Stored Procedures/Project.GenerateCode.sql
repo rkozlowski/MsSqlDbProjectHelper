@@ -75,6 +75,7 @@ BEGIN
         [ValueColumn] NVARCHAR(128) NOT NULL,
         [EnumName] NVARCHAR(200) NULL,
         [ValueType] NVARCHAR(128) NOT NULL,
+        [IsSetOfFlags] BIT NOT NULL DEFAULT (0),
         UNIQUE ([Schema], [Table])
     );
 
@@ -111,6 +112,8 @@ BEGIN
         [HasResultSet] BIT NOT NULL DEFAULT (0),
         [HasUnknownResultSet] BIT NOT NULL DEFAULT (0),
         [ResultType] NVARCHAR(200) NOT NULL DEFAULT(N'int'),
+        [LanguageOptionsReset] BIGINT NULL,
+        [LanguageOptionsSet] BIGINT NULL,
         UNIQUE ([Schema], [Name])
     );
 

@@ -58,6 +58,7 @@ DECLARE @TT_RS_MAPPING_SETUP TINYINT = 43;
 DECLARE @TT_TABLE_TYPE_DT_COLUMN_IDENTITY TINYINT = 44;
 DECLARE @TT_TABLE_TYPE_DT_COLUMN_PRECISION_SCALE TINYINT = 45;
 DECLARE @TT_WRAPPER_EXEC_RS_RV TINYINT = 46;
+DECLARE @TT_ENUM_START_FLAG TINYINT = 47;
 
 DECLARE @LO_GENERATE_STATIC_CLASS BIGINT = 1;
 DECLARE @LO_TREAT_OUTPUT_PARAMS_AS_INPUT_OUTPUT BIGINT = 2;
@@ -249,7 +250,15 @@ N'
         @{EnumAccess} enum @{EnumName}
         {');
 
-
+INSERT INTO #Template
+([LanguageId], [TypeId], [Template])
+VALUES
+(@langId, @TT_ENUM_START_FLAG, 
+N'
+        // Source table: @{EnumSchema}.@{EnumTable}
+        [Flag]
+        @{EnumAccess} enum @{EnumName}
+        {');
 
 
 INSERT INTO #Template
