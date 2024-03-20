@@ -184,6 +184,8 @@
     <Build Include="Functions\Internal.IsNameMatch.sql" />
     <None Include="DeploymentScripts\MsSqlProjectHelperDb_FullDeploy_v_0.7.1.sql" />
     <None Include="DeploymentScripts\MsSqlProjectHelperDb_Upgrade_v_0.7_to_v_0.7.1.sql" />
+    <None Include="DeploymentScripts\MsSqlProjectHelperDb_FullDeploy_v_0.7.2.sql" />
+    <None Include="DeploymentScripts\MsSqlProjectHelperDb_Upgrade_v_0.7.1_to_v_0.7.2.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Scripts\Script.PostDeployment.sql" />
@@ -203,6 +205,6 @@
     <None Include="Scripts\Script.PreUpgradeVersionCheck.sql" />
   </ItemGroup>
   <ItemGroup>
-    <PreDeploy Include="Scripts\Script.PreDeployment1.sql" />
+    <PreDeploy Include="Scripts\Script.PreDeployment.sql" />
   </ItemGroup>
 </Project>

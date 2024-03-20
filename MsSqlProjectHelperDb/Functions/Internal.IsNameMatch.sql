@@ -22,7 +22,7 @@ BEGIN
 
     IF @matchType=@NM_EXACT_MATCH AND NULLIF(LTRIM(@pattern), N'') IS NOT NULL
     BEGIN
-        SET @result = 1;
+        SET @result = CASE WHEN @name=@pattern THEN 1 ELSE 0 END;
     END
     ELSE IF @matchType=@NM_PREFIX AND NULLIF(LTRIM(@pattern), N'') IS NOT NULL
     BEGIN
