@@ -102,7 +102,7 @@ BEGIN
 	WHILE @id IS NOT NULL
 	BEGIN		
 		SELECT @columnName=[Internal].[EscapeString](@langId, rs.[Name]), @name=[Internal].[GetName](@projectId, @NT_PROPERTY, rs.[Name], NULL), 
-			@type=ISNULL(@className + N'.' + e.[EnumName], dtm.[NativeType]) + CASE WHEN dtm.[IsNullable]=0 THEN N'?' ELSE N'' END
+			@type=ISNULL(@className + N'.' + e.[EnumName], dtm.[NativeType]) + CASE WHEN rs.[IsNullable]=1 AND dtm.[IsNullable]=0 THEN N'?' ELSE N'' END
 		FROM #StoredProcResultSet rs 
 		JOIN [dbo].[DataTypeMap] dtm ON dtm.[SqlType]=rs.[SqlType]
 		LEFT JOIN #Enum e ON rs.[EnumId]=e.[Id]
