@@ -256,7 +256,7 @@ VALUES
 (@langId, @TT_ENUM_START_FLAG, 
 N'
         // Source table: @{EnumSchema}.@{EnumTable}
-        [Flag]
+        [Flags]
         @{EnumAccess} enum @{EnumName}
         {');
 

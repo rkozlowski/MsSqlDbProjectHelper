@@ -9,11 +9,14 @@ RETURNS NVARCHAR(200)
 AS
 BEGIN
 	DECLARE @result NVARCHAR(200) = '';
-
-	SELECT @result=[Internal].[GetCaseName](lnc.[CasingId], @name, NULL) --@schema)
+	DECLARE @casingId TINYINT;
+	
+	SELECT @casingId=lnc.[CasingId]
 	FROM [dbo].[Project] p
 	JOIN [dbo].[LanguageNameCasing] lnc ON lnc.[LanguageId]=p.[LanguageId] AND lnc.[NameTypeId]=@typeId
-	WHERE p.[Id]=@projectId
+	WHERE p.[Id]=@projectId;
+
+	SELECT @result=[Internal].[GetCaseName](@casingId, @name, NULL);
 	
-	RETURN ISNULL(NULLIF(@result, ''), '_');
+	RETURN ISNULL(NULLIF(@result, ''), [Internal].[GetCaseName](@casingId, 'x', NULL));
 END

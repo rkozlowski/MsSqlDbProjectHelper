@@ -58,3 +58,16 @@ SELECT CAST(N'IF NOT EXISTS (SELECT 1 FROM [Enum].[NameMatch] WHERE [Id]=' + LOW
 	  + CHAR(13) + CHAR(10) + N'VALUES (' + LOWER([Id]) + N', N' +  QUOTENAME([Name], N'''') + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(200)) [-- table [Enum]].[NameMatch]]]
 FROM [Enum].[NameMatch]
 ORDER BY [Id];
+
+SELECT CAST(N'IF NOT EXISTS (SELECT 1 FROM [Enum].[NameSource] WHERE [Id]=' + LOWER([Id]) + N') ' + CHAR(13) + CHAR(10) + N'INSERT INTO [Enum].[NameSource] ([Id], [Name]) ' 
+	  + CHAR(13) + CHAR(10) + N'VALUES (' + LOWER([Id]) + N', N' +  QUOTENAME([Name], N'''') + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(200)) [-- table [Enum]].[NameSource]]]
+FROM [Enum].[NameSource]
+ORDER BY [Id];
+
+SELECT CAST(N'IF NOT EXISTS (SELECT 1 FROM [Enum].[NamePartType] WHERE [Id]=' + LOWER([Id]) + N') ' + CHAR(13) + CHAR(10) 
+	+ N'INSERT INTO [Enum].[NamePartType] ([Id], [Name], [NameSourceId], [IsPrefix], [IsSuffix]) ' 
+	  + CHAR(13) + CHAR(10) + N'VALUES (' + LOWER([Id]) + N', N' +  QUOTENAME([Name], N'''') 
+	  + N', ' + LOWER([NameSourceId]) + N', ' + LOWER([IsPrefix]) + N', ' + LOWER([IsSuffix])
+	  + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(250)) [-- table [Enum]].[NamePartType]]]
+FROM [Enum].[NamePartType]
+ORDER BY [Id];

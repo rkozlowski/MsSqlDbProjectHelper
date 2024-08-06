@@ -1,5 +1,6 @@
 ﻿
 
+
 CREATE VIEW [View].[Project]
 AS
 SELECT p.[Id], p.[Name], p.[NamespaceName], p.[ClassName], p.[ClassAccessId], ca.[Name] [ClassAccess], p.[LanguageId], l.[Name] AS [Language], 

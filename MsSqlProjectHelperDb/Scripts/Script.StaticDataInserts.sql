@@ -488,5 +488,47 @@ INSERT INTO [Enum].[NameMatch] ([Id], [Name])
 VALUES (255, N'Any');
 
 
+-- table [Enum].[NameSource]
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS (SELECT 1 FROM [Enum].[NameSource] WHERE [Id]=1) 
+INSERT INTO [Enum].[NameSource] ([Id], [Name]) 
+VALUES (1, N'TableName');
 
--- Completion time: 2024-03-19T20:07:17.1809278+00:00
+IF NOT EXISTS (SELECT 1 FROM [Enum].[NameSource] WHERE [Id]=2) 
+INSERT INTO [Enum].[NameSource] ([Id], [Name]) 
+VALUES (2, N'StoredProcName');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[NameSource] WHERE [Id]=3) 
+INSERT INTO [Enum].[NameSource] ([Id], [Name]) 
+VALUES (3, N'TableTypeName');
+
+
+-- table [Enum].[NamePartType]
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS (SELECT 1 FROM [Enum].[NamePartType] WHERE [Id]=1) 
+INSERT INTO [Enum].[NamePartType] ([Id], [Name], [NameSourceId], [IsPrefix], [IsSuffix]) 
+VALUES (1, N'TableNamePreffix', 1, 0, 0);
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[NamePartType] WHERE [Id]=2) 
+INSERT INTO [Enum].[NamePartType] ([Id], [Name], [NameSourceId], [IsPrefix], [IsSuffix]) 
+VALUES (2, N'TableNameSuffix', 1, 0, 1);
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[NamePartType] WHERE [Id]=3) 
+INSERT INTO [Enum].[NamePartType] ([Id], [Name], [NameSourceId], [IsPrefix], [IsSuffix]) 
+VALUES (3, N'StoredProcNamePrefix', 2, 1, 0);
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[NamePartType] WHERE [Id]=4) 
+INSERT INTO [Enum].[NamePartType] ([Id], [Name], [NameSourceId], [IsPrefix], [IsSuffix]) 
+VALUES (4, N'StoredProcNameSuffix', 2, 0, 1);
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[NamePartType] WHERE [Id]=5) 
+INSERT INTO [Enum].[NamePartType] ([Id], [Name], [NameSourceId], [IsPrefix], [IsSuffix]) 
+VALUES (5, N'TableTypeNamePrefix', 3, 1, 0);
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[NamePartType] WHERE [Id]=6) 
+INSERT INTO [Enum].[NamePartType] ([Id], [Name], [NameSourceId], [IsPrefix], [IsSuffix]) 
+VALUES (6, N'TableTypeNameSuffix', 3, 0, 1);
+
+
+
+-- Completion time: 2024-08-04T16:20:05.0644678+01:00

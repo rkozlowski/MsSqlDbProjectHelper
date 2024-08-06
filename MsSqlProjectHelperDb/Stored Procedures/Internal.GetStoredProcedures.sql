@@ -89,7 +89,8 @@ BEGIN
     INSERT INTO #StoredProc ([Schema], [Name], [LanguageOptionsReset], [LanguageOptionsSet])
     SELECT [Schema], [Name], [LanguageOptionsReset], [LanguageOptionsSet]
     FROM #EveryStoredProc
-    WHERE [ProjectStoredProcId] IS NOT NULL;
+    WHERE [ProjectStoredProcId] IS NOT NULL
+	ORDER BY [Schema], [Name];
 
     DROP TABLE IF EXISTS #EveryStoredProc;
 END

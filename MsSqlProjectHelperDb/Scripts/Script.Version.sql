@@ -1,5 +1,5 @@
-﻿DECLARE @version VARCHAR(50) = '0.7.3';
-DECLARE @description NVARCHAR(500) = N'Fixed bug related to non-nullable columns in the result types.'
+﻿DECLARE @version VARCHAR(50) = '0.8';
+DECLARE @description NVARCHAR(500) = N'Improvements around generated names for classes, methods and properties.'
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Version] WHERE [Version]=@version)
 BEGIN

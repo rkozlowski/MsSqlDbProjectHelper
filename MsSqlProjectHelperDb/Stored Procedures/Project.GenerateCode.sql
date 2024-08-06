@@ -1,7 +1,7 @@
 ﻿CREATE PROCEDURE [Project].[GenerateCode]
     @projectName NVARCHAR(200),
     @errorMessage NVARCHAR(2000) OUTPUT,
-    @databaseName NVARCHAR(128) = NULL,    
+    @databaseName NVARCHAR(128) = NULL,
     @codeGenOptions VARCHAR(1000) = NULL
 AS
 BEGIN
@@ -37,6 +37,10 @@ BEGIN
     DECLARE @NT_TUPLE_FIELD TINYINT = 7;
     DECLARE @NT_ENUM TINYINT = 8;
     DECLARE @NT_ENUM_MEMBER TINYINT = 9;
+
+	DECLARE @NS_TABLE_NAME TINYINT = 1;
+	DECLARE @NS_STORED_PROC_NAME TINYINT = 2;
+	DECLARE @NS_TABLE_TYPE_NAME TINYINT = 3;
 
     DECLARE @options SMALLINT = [Internal].[GetCodeGenerationOptions](@codeGenOptions);
 
@@ -85,9 +89,11 @@ BEGIN
         [Id] INT NOT NULL IDENTITY (1, 1) PRIMARY KEY,        
         [EnumId] INT NOT NULL,        
         [Name] VARCHAR(200) NOT NULL,
-        [Value] BIGINT NOT NULL,        
+        [Value] BIGINT NOT NULL,     
+		[TempName] VARCHAR(200) NULL,
         UNIQUE ([EnumId], [Name]),
-        UNIQUE ([EnumId], [Value])
+        UNIQUE ([EnumId], [Value]),
+		UNIQUE ([EnumId], [TempName], [Value])
     );
 
     DROP TABLE IF EXISTS #EnumForeignKey;
@@ -203,7 +209,9 @@ BEGIN
         [Precision] TINYINT NOT NULL, 
         [Scale] TINYINT NOT NULL,
         [EnumId] INT NULL,
-        UNIQUE ([StoredProcId], [ColumnOrdinal])
+		[PropertyName] NVARCHAR(200) NULL,
+        UNIQUE ([StoredProcId], [ColumnOrdinal]),		
+        UNIQUE ([StoredProcId], [PropertyName], [ColumnOrdinal])
     );
 
     DROP TABLE IF EXISTS #StoredProcResultType;
@@ -252,8 +260,24 @@ BEGIN
         SELECT @rc = @retVal;
         RETURN @rc;
     END
+	DECLARE @hasDuplicates BIT = 0;
+	DECLARE @dupNo INT = 1;
 
-    UPDATE #Enum SET [EnumName]=[Internal].[GetName](@projectId, @NT_ENUM, [Table], [Schema]);
+    UPDATE #Enum SET [EnumName]=[Internal].[GetNameEx](@projectId, @NT_ENUM, @NS_TABLE_NAME, [Table], [Schema]);
+	SELECT @hasDuplicates = CASE WHEN EXISTS (SELECT 1 FROM #Enum e1 JOIN #Enum e2 ON e1.[EnumName]=e2.[EnumName] AND e1.[Id]>e2.[Id]) THEN 1 ELSE 0 END;
+	SET @dupNo = 1;
+	WHILE @hasDuplicates=1 AND @dupNo < 20
+	BEGIN
+		UPDATE e2
+		SET e2.[EnumName] = [Internal].[GetName](@projectId, @NT_ENUM, e2.[EnumName] + LOWER(@dupNo), NULL)
+		FROM #Enum e1 
+		JOIN #Enum e2 ON e1.[EnumName]=e2.[EnumName] AND e1.[Id]<e2.[Id]
+		LEFT JOIN #Enum ex ON e1.[EnumName]=ex.[EnumName] AND e1.[Id]>ex.[Id]
+		WHERE ex.[Id] IS NULL;
+
+		SELECT @hasDuplicates = CASE WHEN EXISTS (SELECT 1 FROM #Enum e1 JOIN #Enum e2 ON e1.[EnumName]=e2.[EnumName] AND e1.[Id]>e2.[Id]) THEN 1 ELSE 0 END;
+		SET @dupNo += 1;
+	END
 
     DECLARE @id INT = (SELECT MIN([Id]) FROM #Enum);
     
@@ -277,7 +301,25 @@ BEGIN
         SELECT @id = MIN([Id]) FROM #Enum WHERE [Id]>@id;
     END
 
-    UPDATE #EnumVal SET [Name]=[Internal].[GetName](@projectId, @NT_ENUM_MEMBER, [Name], NULL);
+
+	UPDATE #EnumVal SET [TempName]=[Internal].[GetName](@projectId, @NT_ENUM_MEMBER, [Name], NULL);
+	
+	SELECT @hasDuplicates = CASE WHEN EXISTS (SELECT 1 FROM #EnumVal v1 JOIN #EnumVal v2 ON v1.[EnumId]=v2.[EnumId] AND v1.[TempName]=v2.[TempName] AND v1.[Id]>v2.[Id]) THEN 1 ELSE 0 END;
+	SET @dupNo = 1;
+	WHILE @hasDuplicates=1 AND @dupNo < 20
+	BEGIN
+		UPDATE v2
+		SET v2.[TempName] = [Internal].[GetName](@projectId, @NT_ENUM_MEMBER, v2.[TempName] + LOWER(@dupNo), NULL)
+		FROM #EnumVal v1 
+		JOIN #EnumVal v2 ON v1.[EnumId]=v2.[EnumId] AND v1.[TempName]=v2.[TempName] AND v1.[Id]<v2.[Id]
+		LEFT JOIN #EnumVal vx ON v1.[EnumId]=vx.[EnumId] AND v1.[TempName]=vx.[TempName] AND v1.[Id]>vx.[Id]
+		WHERE vx.[Id] IS NULL;
+
+		SELECT @hasDuplicates = CASE WHEN EXISTS (SELECT 1 FROM #EnumVal v1 JOIN #EnumVal v2 ON v1.[EnumId]=v2.[EnumId] AND v1.[TempName]=v2.[TempName] AND v1.[Id]>v2.[Id]) THEN 1 ELSE 0 END;		
+		SET @dupNo += 1;
+	END
+
+	UPDATE #EnumVal SET [Name]=[TempName];
 
     /*
     SELECT e.[Schema], e.[Table], e.[EnumName], fk.*
@@ -314,7 +356,23 @@ BEGIN
         SELECT @id = MIN([Id]) FROM #StoredProc WHERE [Id]>@id;
     END
 
-    UPDATE #StoredProc SET [WrapperName]=[Internal].[GetName](@projectId, @NT_METHOD, [Name], [Schema]);
+    UPDATE #StoredProc SET [WrapperName]=[Internal].[GetNameEx](@projectId, @NT_METHOD, @NS_STORED_PROC_NAME, [Name], [Schema]);
+
+	SELECT @hasDuplicates = CASE WHEN EXISTS (SELECT 1 FROM #StoredProc p1 JOIN #StoredProc p2 ON p1.[WrapperName]=p2.[WrapperName] AND p1.[Id]<p2.[Id]) THEN 1 ELSE 0 END;
+	SET @dupNo = 1;
+	WHILE @hasDuplicates=1 AND @dupNo < 20
+	BEGIN
+		UPDATE p2
+		SET p2.[WrapperName] = [Internal].[GetName](@projectId, @NT_METHOD, p2.[WrapperName] + LOWER(@dupNo), NULL)
+		FROM #StoredProc p1 
+		JOIN #StoredProc p2 ON p1.[WrapperName]=p2.[WrapperName] AND p1.[Id]<p2.[Id]
+		LEFT JOIN #StoredProc px ON p1.[WrapperName]=px.[WrapperName] AND p1.[Id]>px.[Id]
+		WHERE px.[Id] IS NULL;
+
+		SELECT @hasDuplicates = CASE WHEN EXISTS (SELECT 1 FROM #StoredProc p1 JOIN #StoredProc p2 ON p1.[WrapperName]=p2.[WrapperName] AND p1.[Id]<p2.[Id]) THEN 1 ELSE 0 END;
+		SET @dupNo += 1;
+	END
+
 
     UPDATE sp
     SET sp.[HasResultSet]=1, sp.[ResultType]=[Internal].[GetName](@projectId, @NT_CLASS, sp.[WrapperName] + N'Result', NULL)
@@ -325,6 +383,31 @@ BEGIN
     SET sp.[HasResultSet]=1, sp.[ResultType]=N'dynamic'
     FROM #StoredProc sp
     WHERE sp.[HasResultSet]=0 AND sp.[HasUnknownResultSet]=1;
+
+
+	UPDATE rs
+	SET rs.[PropertyName]=[Internal].[GetName](@projectId, @NT_PROPERTY, rs.[Name], NULL)
+	FROM #StoredProcResultSet rs;
+
+	SELECT @hasDuplicates = CASE WHEN EXISTS (
+		SELECT 1 FROM #StoredProcResultSet rs1 JOIN #StoredProcResultSet rs2 ON rs1.[StoredProcId]=rs2.[StoredProcId] AND rs1.[PropertyName]=rs2.[PropertyName] AND rs1.[Id]<rs2.[Id]
+	) THEN 1 ELSE 0 END;
+	SET @dupNo = 1;
+	WHILE @hasDuplicates=1 AND @dupNo < 20
+	BEGIN
+		UPDATE rs2
+		SET rs2.[PropertyName] = [Internal].[GetName](@projectId, @NT_PROPERTY, rs2.[PropertyName] + LOWER(@dupNo), NULL)
+		FROM #StoredProcResultSet rs1 
+		JOIN #StoredProcResultSet rs2 ON rs1.[StoredProcId]=rs2.[StoredProcId] AND rs1.[PropertyName]=rs2.[PropertyName] AND rs1.[Id]<rs2.[Id]
+		LEFT JOIN #StoredProcResultSet rsx ON rs1.[StoredProcId]=rsx.[StoredProcId] AND rs1.[PropertyName]=rsx.[PropertyName] AND rs1.[Id]>rsx.[Id]		
+		WHERE rsx.[Id] IS NULL;
+
+		SELECT @hasDuplicates = CASE WHEN EXISTS (
+			SELECT 1 FROM #StoredProcResultSet rs1 JOIN #StoredProcResultSet rs2 ON rs1.[StoredProcId]=rs2.[StoredProcId] AND rs1.[PropertyName]=rs2.[PropertyName] AND rs1.[Id]<rs2.[Id]
+		) THEN 1 ELSE 0 END;
+		SET @dupNo += 1;
+	END
+
     
     INSERT INTO #StoredProcResultType ([StoredProcId], [Name])
     SELECT [Id], [ResultType]
@@ -332,11 +415,46 @@ BEGIN
     WHERE [HasResultSet]=1 AND [HasUnknownResultSet]=0;
 
     UPDATE #StoredProcParam SET [ParamName]=[Internal].[GetName](@projectId, @NT_PARAMETER, [Name], NULL);
+	
+	SELECT @hasDuplicates = CASE WHEN EXISTS (
+		SELECT 1 FROM #StoredProcParam p1 JOIN #StoredProcParam p2 ON p1.[StoredProcId]=p2.[StoredProcId] AND p1.[ParamName]=p2.[ParamName] AND p1.[Id]<p2.[Id]
+	) THEN 1 ELSE 0 END;
+	SET @dupNo = 1;
+	WHILE @hasDuplicates=1 AND @dupNo < 20
+	BEGIN
+		UPDATE p2
+		SET p2.[ParamName] = [Internal].[GetName](@projectId, @NT_PARAMETER, p2.[ParamName] + LOWER(@dupNo), NULL)
+		FROM #StoredProcParam p1 
+		JOIN #StoredProcParam p2 ON p1.[StoredProcId]=p2.[StoredProcId] AND p1.[ParamName]=p2.[ParamName] AND p1.[Id]<p2.[Id]
+		LEFT JOIN #StoredProcParam px ON p1.[StoredProcId]=px.[StoredProcId] AND p1.[ParamName]=px.[ParamName] AND p1.[Id]>px.[Id]		
+		WHERE px.[Id] IS NULL;
+
+		SELECT @hasDuplicates = CASE WHEN EXISTS (
+			SELECT 1 FROM #StoredProcParam p1 JOIN #StoredProcParam p2 ON p1.[StoredProcId]=p2.[StoredProcId] AND p1.[ParamName]=p2.[ParamName] AND p1.[Id]<p2.[Id]
+		) THEN 1 ELSE 0 END;
+		SET @dupNo += 1;
+	END
+
 
     INSERT INTO #TableType ([SqlType], [SqlTypeSchema], [Name])
-    SELECT DISTINCT spp.[SqlType], spp.[SqlTypeSchema], [Internal].[GetName](@projectId, @NT_CLASS, spp.[SqlType], spp.[SqlTypeSchema])
+    SELECT DISTINCT spp.[SqlType], spp.[SqlTypeSchema], [Internal].[GetNameEx](@projectId, @NT_CLASS, @NS_TABLE_TYPE_NAME, spp.[SqlType], spp.[SqlTypeSchema])
     FROM #StoredProcParam spp
     WHERE spp.[IsTypeUserDefined]=1 AND spp.IsTableType=1;
+
+	SELECT @hasDuplicates = CASE WHEN EXISTS (SELECT 1 FROM #TableType t1 JOIN #TableType t2 ON t1.[Name]=t2.[Name] AND t1.[Id]<t2.[Id]) THEN 1 ELSE 0 END;
+	SET @dupNo = 1;
+	WHILE @hasDuplicates=1 AND @dupNo < 20
+	BEGIN
+		UPDATE t2
+		SET t2.[Name] = [Internal].[GetName](@projectId, @NT_CLASS, t2.[Name] + LOWER(@dupNo), NULL)
+		FROM #TableType t1 
+		JOIN #TableType t2 ON t1.[Name]=t2.[Name] AND t1.[Id]<t2.[Id]
+		LEFT JOIN #TableType tx ON t1.[Name]=tx.[Name] AND t1.[Id]>tx.[Id]
+		WHERE tx.[Id] IS NULL;
+
+		SELECT @hasDuplicates = CASE WHEN EXISTS (SELECT 1 FROM #TableType t1 JOIN #TableType t2 ON t1.[Name]=t2.[Name] AND t1.[Id]<t2.[Id]) THEN 1 ELSE 0 END;
+		SET @dupNo += 1;
+	END
 
     SELECT @id=MIN([Id]) FROM #TableType;
     
@@ -354,6 +472,25 @@ BEGIN
 
     UPDATE #TableTypeColumn
     SET [PropertyName]=[Internal].[GetName](@projectId, @NT_PROPERTY, [Name], NULL);
+
+	SELECT @hasDuplicates = CASE WHEN EXISTS (
+		SELECT 1 FROM #TableTypeColumn c1 JOIN #TableTypeColumn c2 ON c1.[TableTypeId]=c2.[TableTypeId] AND c1.[PropertyName]=c2.[PropertyName] AND c1.[Id]<c2.[Id]
+	) THEN 1 ELSE 0 END;
+	SET @dupNo = 1;
+	WHILE @hasDuplicates=1 AND @dupNo < 20
+	BEGIN
+		UPDATE c2
+		SET c2.[PropertyName] = [Internal].[GetName](@projectId, @NT_PROPERTY, c2.[PropertyName] + LOWER(@dupNo), NULL)
+		FROM #TableTypeColumn c1 
+		JOIN #TableTypeColumn c2 ON c1.[TableTypeId]=c2.[TableTypeId] AND c1.[PropertyName]=c2.[PropertyName] AND c1.[Id]<c2.[Id]
+		LEFT JOIN #TableTypeColumn cx ON c1.[TableTypeId]=cx.[TableTypeId] AND c1.[PropertyName]=cx.[PropertyName] AND c1.[Id]>cx.[Id]		
+		WHERE cx.[Id] IS NULL;
+
+		SELECT @hasDuplicates = CASE WHEN EXISTS (
+			SELECT 1 FROM #TableTypeColumn c1 JOIN #TableTypeColumn c2 ON c1.[TableTypeId]=c2.[TableTypeId] AND c1.[PropertyName]=c2.[PropertyName] AND c1.[Id]<c2.[Id]
+		) THEN 1 ELSE 0 END;
+		SET @dupNo += 1;
+	END
 
     --SELECT * FROM #Enum ORDER BY [Id];
     --SELECT * FROM #EnumVal ORDER BY [Id];

@@ -80,6 +80,7 @@ BEGIN
 	SET @query += N'LEFT JOIN sys.indexes ux2 ON ux2.object_id=t.object_id AND ux2.is_primary_key=0 AND ux2.is_unique=1 AND ux2.index_id<>ux.index_id '
 	SET @query += N'WHERE t.[Type]=''U'' AND idnc.column_id IS NULL AND pkc2.index_column_id IS NULL AND uxc2.index_column_id IS NULL AND ux2.index_id IS NULL '
 	SET @query += N'AND SCHEMA_NAME(t.schema_id) IN (' + @enumSchemas + N') '
+	SET @query += N'ORDER BY t.[name] '
 	SET @query += N';
 	';
 	--PRINT(@query);
