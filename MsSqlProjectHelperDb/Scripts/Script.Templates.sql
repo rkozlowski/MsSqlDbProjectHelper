@@ -59,10 +59,15 @@ DECLARE @TT_TABLE_TYPE_DT_COLUMN_IDENTITY TINYINT = 44;
 DECLARE @TT_TABLE_TYPE_DT_COLUMN_PRECISION_SCALE TINYINT = 45;
 DECLARE @TT_WRAPPER_EXEC_RS_RV TINYINT = 46;
 DECLARE @TT_ENUM_START_FLAG TINYINT = 47;
+DECLARE @TT_WRAPPER_ENUM_START TINYINT = 48;
+DECLARE @TT_WRAPPER_ENUM_END TINYINT = 49;
+DECLARE @TT_WRAPPER_ENUM_ITEM TINYINT = 50;
 
 DECLARE @LO_GENERATE_STATIC_CLASS BIGINT = 1;
 DECLARE @LO_TREAT_OUTPUT_PARAMS_AS_INPUT_OUTPUT BIGINT = 2;
 DECLARE @LO_CAPTURE_RETURN_VALUE_FOR_RESULT_SET_STORED_PROCEDURES BIGINT = 4;
+DECLARE @LO_OUTPUT_MINIMAL_ENV_INFO BIGINT = 8;
+DECLARE @LO_OUTPUT_MINIMAL_TOOL_INFO BIGINT = 16;
 DECLARE @LO_TARGET_CLASSIC_DOT_NET BIGINT = 65536;
 DECLARE @LO_USE_SYNC_WRAPPERS BIGINT = 131072;
 
@@ -86,6 +91,13 @@ N'//     Source database: @{Database}
 //     Timestamp:       @{Timestamp}');
 
 INSERT INTO #Template
+([LanguageId], [TypeId], [LanguageOptions], [Template])
+VALUES
+(@langId, @TT_START_COMMENT_ENV, @LO_OUTPUT_MINIMAL_ENV_INFO, 
+N'//     Source database: @{Database}
+//     Timestamp:       @{Timestamp}');
+
+INSERT INTO #Template
 ([LanguageId], [TypeId], [Template])
 VALUES
 (@langId, @TT_START_COMMENT_TOOL, 
@@ -93,6 +105,12 @@ N'//     Tool name:       @{ToolName}
 //     Tool database:   @{ToolDatabase}
 //     Tool version:    @{ToolVersion}
 //     Tool URL:        @{ToolUrl}');
+
+INSERT INTO #Template
+([LanguageId], [TypeId], [LanguageOptions], [Template])
+VALUES
+(@langId, @TT_START_COMMENT_TOOL, @LO_OUTPUT_MINIMAL_TOOL_INFO, 
+N'//     Tool name:       @{ToolName}');
 
 
 INSERT INTO #Template
@@ -176,6 +194,31 @@ N'namespace @{NamespaceName}
             public string Name { get; set; }
         }
 
+        public class WrapperSettings
+        {
+            public int? CommandTimeoutSec { get; set; } = null;
+        }
+
+        public Dictionary<StoredProcedureWrapper, WrapperSettings> StoredProcedureWrapperSettings { get; private set; } = new Dictionary<StoredProcedureWrapper, WrapperSettings>();
+
+        public void SetCommandTimeout(StoredProcedureWrapper wrapper, int commandTimeoutSec)
+        {
+            if (!StoredProcedureWrapperSettings.ContainsKey(wrapper))
+            {
+                StoredProcedureWrapperSettings[wrapper] = new WrapperSettings();
+            }
+            StoredProcedureWrapperSettings[wrapper].CommandTimeoutSec = commandTimeoutSec;
+        }
+
+        public int GetCommandTimeout(StoredProcedureWrapper wrapper)
+        {
+            if (StoredProcedureWrapperSettings.ContainsKey(wrapper) && StoredProcedureWrapperSettings[wrapper].CommandTimeoutSec.HasValue)
+            {
+                return StoredProcedureWrapperSettings[wrapper].CommandTimeoutSec.Value;
+            }
+            return DefaultCommandTimeoutSec;
+        }
+
         static @{ClassName}()
         {
 ');
@@ -201,6 +244,31 @@ N'namespace @{NamespaceName}
         public class ColumnAttribute : Attribute
         {
             public string Name { get; set; }
+        }
+
+        public class WrapperSettings
+        {
+            public int? CommandTimeoutSec { get; set; } = null;
+        }
+
+        public static Dictionary<StoredProcedureWrapper, WrapperSettings> StoredProcedureWrapperSettings { get; private set; } = new Dictionary<StoredProcedureWrapper, WrapperSettings>();
+
+        public static void SetCommandTimeout(StoredProcedureWrapper wrapper, int commandTimeoutSec)
+        {
+            if (!StoredProcedureWrapperSettings.ContainsKey(wrapper))
+            {
+                StoredProcedureWrapperSettings[wrapper] = new WrapperSettings();
+            }
+            StoredProcedureWrapperSettings[wrapper].CommandTimeoutSec = commandTimeoutSec;
+        }
+
+        public static int GetCommandTimeout(StoredProcedureWrapper wrapper)
+        {
+            if (StoredProcedureWrapperSettings.ContainsKey(wrapper) && StoredProcedureWrapperSettings[wrapper].CommandTimeoutSec.HasValue)
+            {
+                return StoredProcedureWrapperSettings[wrapper].CommandTimeoutSec.Value;
+            }
+            return DefaultCommandTimeoutSec;
         }
         
         static @{ClassName}()
@@ -239,6 +307,27 @@ N'
     }
 }
 ');
+
+INSERT INTO #Template
+([LanguageId], [TypeId], [Template])
+VALUES
+(@langId, @TT_WRAPPER_ENUM_START, 
+N'
+        @{EnumAccess} enum @{EnumName}
+        {');
+
+INSERT INTO #Template
+([LanguageId], [TypeId], [Template])
+VALUES
+(@langId, @TT_WRAPPER_ENUM_END, 
+N'        }
+');
+
+INSERT INTO #Template
+([LanguageId], [TypeId], [Template])
+VALUES
+(@langId, @TT_WRAPPER_ENUM_ITEM, N'            @{Name}@{Sep}');
+
 
 
 INSERT INTO #Template
@@ -376,7 +465,8 @@ VALUES
             using (var connection = GetDbConnection())
             {
                 await connection.OpenAsync();
-                await connection.ExecuteAsync("@{SpSchema}.@{SpName}", p, commandTimeout: DefaultCommandTimeoutSec, commandType: CommandType.StoredProcedure);
+                await connection.ExecuteAsync("@{SpSchema}.@{SpName}", p, 
+                    commandTimeout: GetCommandTimeout(StoredProcedureWrapper.@{WrapperName}), commandType: CommandType.StoredProcedure);
                 connection.Close();
             }
             @{ResultVarName} = p.Get<@{ResultType}>("@returnValue");
@@ -391,7 +481,8 @@ VALUES
             {
                 await connection.OpenAsync();
 
-                var queryResult = await connection.QueryAsync<@{ResultTypeSingle}>("@{SpSchema}.@{SpName}", p, commandTimeout: DefaultCommandTimeoutSec, commandType: CommandType.StoredProcedure);
+                var queryResult = await connection.QueryAsync<@{ResultTypeSingle}>("@{SpSchema}.@{SpName}", p, 
+                    commandTimeout: GetCommandTimeout(StoredProcedureWrapper.@{WrapperName}), commandType: CommandType.StoredProcedure);
 
                 connection.Close();
                 @{ResultVarName} = queryResult.ToList();
@@ -407,7 +498,8 @@ VALUES
             {
                 await connection.OpenAsync();
 
-                var queryResult = await connection.QueryAsync<@{ResultTypeSingle}>("@{SpSchema}.@{SpName}", p, commandTimeout: DefaultCommandTimeoutSec, commandType: CommandType.StoredProcedure);
+                var queryResult = await connection.QueryAsync<@{ResultTypeSingle}>("@{SpSchema}.@{SpName}", p, 
+                    commandTimeout: GetCommandTimeout(StoredProcedureWrapper.@{WrapperName}), commandType: CommandType.StoredProcedure);
 
                 connection.Close();
                 @{ResultVarName} = queryResult.ToList();
@@ -426,7 +518,8 @@ N'            p.Add("@returnValue", dbType: DbType.Int32, direction: ParameterDi
             using (var connection = GetDbConnection())
             {
                 connection.Open();
-                connection.Execute("@{SpSchema}.@{SpName}", p, commandTimeout: DefaultCommandTimeoutSec, commandType: CommandType.StoredProcedure);
+                connection.Execute("@{SpSchema}.@{SpName}", p, 
+                    commandTimeout: GetCommandTimeout(StoredProcedureWrapper.@{WrapperName}), commandType: CommandType.StoredProcedure);
                 connection.Close();
             }
             @{ResultVarName} = p.Get<@{ResultType}>("@returnValue");
@@ -442,7 +535,8 @@ N'
             {
                 connection.Open();
 
-                var queryResult = connection.Query<@{ResultTypeSingle}>("@{SpSchema}.@{SpName}", p, commandTimeout: DefaultCommandTimeoutSec, commandType: CommandType.StoredProcedure);
+                var queryResult = connection.Query<@{ResultTypeSingle}>("@{SpSchema}.@{SpName}", p, 
+                    commandTimeout: GetCommandTimeout(StoredProcedureWrapper.@{WrapperName}), commandType: CommandType.StoredProcedure);
 
                 connection.Close();
                 @{ResultVarName} = queryResult.ToList();
@@ -458,7 +552,8 @@ N'            p.Add("@returnValue", dbType: DbType.Int32, direction: ParameterDi
             {
                 connection.Open();
 
-                var queryResult = connection.Query<@{ResultTypeSingle}>("@{SpSchema}.@{SpName}", p, commandTimeout: DefaultCommandTimeoutSec, commandType: CommandType.StoredProcedure);
+                var queryResult = connection.Query<@{ResultTypeSingle}>("@{SpSchema}.@{SpName}", p, 
+                    commandTimeout: GetCommandTimeout(StoredProcedureWrapper.@{WrapperName}), commandType: CommandType.StoredProcedure);
 
                 connection.Close();
                 @{ResultVarName} = queryResult.ToList();

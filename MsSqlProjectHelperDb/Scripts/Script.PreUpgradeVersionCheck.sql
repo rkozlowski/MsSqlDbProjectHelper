@@ -2,8 +2,8 @@
 GO
 PRINT N'Checking database version before upgrade...';
 DECLARE @expectedName VARCHAR(50) = 'MsSqlProjectHelperDb';
-DECLARE @expectedVersion VARCHAR(50) = '0.7.3';
-DECLARE @newVersion VARCHAR(50) = '0.8';
+DECLARE @expectedVersion VARCHAR(50) = '0.8';
+DECLARE @newVersion VARCHAR(50) = '0.8.5';
 SET XACT_ABORT ON;
 BEGIN TRY
 	EXEC('DECLARE @name VARCHAR(50) = [DbInfo].[GetName](); DECLARE @ver VARCHAR(50) = [DbInfo].[GetCurrentVersion](); ')

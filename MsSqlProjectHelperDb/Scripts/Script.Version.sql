@@ -1,8 +1,9 @@
-﻿DECLARE @version VARCHAR(50) = '0.8';
-DECLARE @description NVARCHAR(500) = N'Improvements around generated names for classes, methods and properties.'
+﻿DECLARE @version VARCHAR(50) = '0.8.5';
+DECLARE @apiLevel SMALLINT = 0;
+DECLARE @description NVARCHAR(500) = N'Added option to specify command timeout per stored procedure wrapper.'
 
-IF NOT EXISTS (SELECT 1 FROM [dbo].[Version] WHERE [Version]=@version)
+IF NOT EXISTS (SELECT 1 FROM [dbo].[SchemaVersion] WHERE [Version]=@version)
 BEGIN
-	INSERT INTO [dbo].[Version] ([Version], [Description])
-	VALUES (@version, @description);
+	INSERT INTO [dbo].[SchemaVersion] ([Version], [Description], [ApiLevel])
+	VALUES (@version, @description, @apiLevel);
 END

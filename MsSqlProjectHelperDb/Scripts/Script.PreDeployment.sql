@@ -11,4 +11,4 @@
 */
 
 -- note: uncomment below line only for generating upgrade script (and make sure the versions in the script below and in the version script are set up correctly
---:r .\Script.PreUpgradeVersionCheck.sql
+:r .\Script.PreUpgradeVersionCheck.sql

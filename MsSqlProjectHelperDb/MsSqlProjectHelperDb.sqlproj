@@ -78,7 +78,6 @@
     <None Include="DeploymentScripts\MsSqlProjectHelperDb_FullDeploy_v_0.2.sql" />
     <None Include="DeploymentScripts\MsSqlProjectHelperDb_FullDeploy_v_0.3.sql" />
     <None Include="DeploymentScripts\MsSqlProjectHelperDb_Upgrade_v_0.2_to_v_0.3.sql" />
-    <Build Include="Tables\dbo.Version.sql" />
     <Build Include="Tables\dbo.Template.sql" />
     <Build Include="Tables\dbo.Project.sql" />
     <Build Include="Tables\dbo.ErrorLog.sql" />
@@ -230,6 +229,15 @@
     <Build Include="Functions\Internal.GetNameEx.sql" />
     <None Include="DeploymentScripts\MsSqlProjectHelperDb_FullDeploy_v_0.8.sql" />
     <None Include="DeploymentScripts\MsSqlProjectHelperDb_Upgrade_v_0.7.3_to_0.8.sql" />
+    <Build Include="Tables\Enum.ToolkitResponseCode.sql" />
+    <Build Include="Stored Procedures\Internal.CreateProject.sql" />
+    <Build Include="Stored Procedures\Toolkit.GetProjectId.sql" />
+    <Build Include="Stored Procedures\Toolkit.GetAllProjects.sql" />
+    <Build Include="Stored Procedures\Toolkit.CreateProject.sql" />
+    <Build Include="Stored Procedures\Toolkit.GetResponseCodes.sql" />
+    <Build Include="Security\Toolkit.sql" />
+    <Build Include="Tables\dbo.SchemaVersion.sql" />
+    <Build Include="Tables\Enum.Status.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Scripts\Script.PostDeployment.sql" />

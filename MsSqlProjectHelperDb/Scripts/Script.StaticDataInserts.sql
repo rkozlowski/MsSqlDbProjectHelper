@@ -1,8 +1,23 @@
-﻿-- table [Enum].[Language]
+﻿-- table [Enum].[Status]
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS (SELECT 1 FROM [Enum].[Status] WHERE [Id]=1) 
+INSERT INTO [Enum].[Status] ([Id], [Name]) 
+VALUES (1, N'Active');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[Status] WHERE [Id]=2) 
+INSERT INTO [Enum].[Status] ([Id], [Name]) 
+VALUES (2, N'Experimental');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[Status] WHERE [Id]=3) 
+INSERT INTO [Enum].[Status] ([Id], [Name]) 
+VALUES (3, N'Deprecated');
+
+
+-- table [Enum].[Language]
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 IF NOT EXISTS (SELECT 1 FROM [Enum].[Language] WHERE [Id]=1) 
-INSERT INTO [Enum].[Language] ([Id], [Name]) 
-VALUES (1, N'c#');
+INSERT INTO [Enum].[Language] ([Id], [Name], [Code], [StatusId]) 
+VALUES (1, N'c#', N'CSharp', 1);
 
 
 -- table [Enum].[ClassAccess]
@@ -255,6 +270,18 @@ VALUES (46, N'WrapperExecRsRv');
 IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=47) 
 INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
 VALUES (47, N'EnumStartFlag');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=48) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (48, N'WrapperEnumStart');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=49) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (49, N'WrapperEnumEnd');
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[TemplateType] WHERE [Id]=50) 
+INSERT INTO [Enum].[TemplateType] ([Id], [Name]) 
+VALUES (50, N'WrapperEnumItem');
 
 
 -- table [Enum].[NameType]
@@ -530,5 +557,56 @@ INSERT INTO [Enum].[NamePartType] ([Id], [Name], [NameSourceId], [IsPrefix], [Is
 VALUES (6, N'TableTypeNameSuffix', 3, 0, 1);
 
 
+-- table [Enum].[ToolkitResponseCode]
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS (SELECT 1 FROM [Enum].[ToolkitResponseCode] WHERE [Id]=0) 
+INSERT INTO [Enum].[ToolkitResponseCode] ([Id], [Name], [Description], [IsSuccess]) 
+VALUES (0, N'Ok', N'Operation completed successfully.', 1);
 
--- Completion time: 2024-08-04T16:20:05.0644678+01:00
+IF NOT EXISTS (SELECT 1 FROM [Enum].[ToolkitResponseCode] WHERE [Id]=1) 
+INSERT INTO [Enum].[ToolkitResponseCode] ([Id], [Name], [Description], [IsSuccess]) 
+VALUES (1, N'DbError', N'An unexpected database error occured.', 0);
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[ToolkitResponseCode] WHERE [Id]=2) 
+INSERT INTO [Enum].[ToolkitResponseCode] ([Id], [Name], [Description], [IsSuccess]) 
+VALUES (2, N'InternalError', N'An unexpected internal error occurred.', 0);
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[ToolkitResponseCode] WHERE [Id]=3) 
+INSERT INTO [Enum].[ToolkitResponseCode] ([Id], [Name], [Description], [IsSuccess]) 
+VALUES (3, N'UnknownProject', N'The specified project does not exist.', 0);
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[ToolkitResponseCode] WHERE [Id]=4) 
+INSERT INTO [Enum].[ToolkitResponseCode] ([Id], [Name], [Description], [IsSuccess]) 
+VALUES (4, N'InvalidDefaultDatabase', N'The provided default database is not valid or accessible.', 0);
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[ToolkitResponseCode] WHERE [Id]=11) 
+INSERT INTO [Enum].[ToolkitResponseCode] ([Id], [Name], [Description], [IsSuccess]) 
+VALUES (11, N'InvalidSchema', N'The provided schema is not valid or accessible.', 0);
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[ToolkitResponseCode] WHERE [Id]=12) 
+INSERT INTO [Enum].[ToolkitResponseCode] ([Id], [Name], [Description], [IsSuccess]) 
+VALUES (12, N'InvalidEnumPattern', N'Invalid enum name match pattern.', 0);
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[ToolkitResponseCode] WHERE [Id]=13) 
+INSERT INTO [Enum].[ToolkitResponseCode] ([Id], [Name], [Description], [IsSuccess]) 
+VALUES (13, N'InvalidProcPattern', N'Invalid stored procedure name match pattern.', 0);
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[ToolkitResponseCode] WHERE [Id]=14) 
+INSERT INTO [Enum].[ToolkitResponseCode] ([Id], [Name], [Description], [IsSuccess]) 
+VALUES (14, N'InvalidClassAccess', N'Invalid class access.', 0);
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[ToolkitResponseCode] WHERE [Id]=15) 
+INSERT INTO [Enum].[ToolkitResponseCode] ([Id], [Name], [Description], [IsSuccess]) 
+VALUES (15, N'InvalidLanguage', N'Invalid programming language.', 0);
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[ToolkitResponseCode] WHERE [Id]=16) 
+INSERT INTO [Enum].[ToolkitResponseCode] ([Id], [Name], [Description], [IsSuccess]) 
+VALUES (16, N'InvalidParamEnumMapping', N'Invalid enum mapping for parameters.', 0);
+
+IF NOT EXISTS (SELECT 1 FROM [Enum].[ToolkitResponseCode] WHERE [Id]=17) 
+INSERT INTO [Enum].[ToolkitResponseCode] ([Id], [Name], [Description], [IsSuccess]) 
+VALUES (17, N'InvalidDatabase', N'The provided database is not valid or accessible.', 0);
+
+
+
+-- Completion time: 2025-06-15T16:40:21.8938976+01:00

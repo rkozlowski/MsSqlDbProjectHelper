@@ -1,8 +1,14 @@
 ﻿SET NOCOUNT ON;
 
 
-SELECT CAST(N'IF NOT EXISTS (SELECT 1 FROM [Enum].[Language] WHERE [Id]=' + LOWER([Id]) + N') ' + CHAR(13) + CHAR(10) + N'INSERT INTO [Enum].[Language] ([Id], [Name]) ' 
-	  + CHAR(13) + CHAR(10) + N'VALUES (' + LOWER([Id]) + N', N' +  QUOTENAME([Name], N'''') + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(200)) [-- table [Enum]].[Language]]]
+SELECT CAST(N'IF NOT EXISTS (SELECT 1 FROM [Enum].[Status] WHERE [Id]=' + LOWER([Id]) + N') ' + CHAR(13) + CHAR(10) + N'INSERT INTO [Enum].[Status] ([Id], [Name]) ' 
+	  + CHAR(13) + CHAR(10) + N'VALUES (' + LOWER([Id]) + N', N' +  QUOTENAME([Name], N'''') + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(200)) [-- table [Enum]].[Status]]]
+FROM [Enum].[Status]
+ORDER BY [Id];
+
+
+SELECT CAST(N'IF NOT EXISTS (SELECT 1 FROM [Enum].[Language] WHERE [Id]=' + LOWER([Id]) + N') ' + CHAR(13) + CHAR(10) + N'INSERT INTO [Enum].[Language] ([Id], [Name], [Code], [StatusId]) ' 
+	  + CHAR(13) + CHAR(10) + N'VALUES (' + LOWER([Id]) + N', N' +  QUOTENAME([Name], N'''') + N', N' +  QUOTENAME([Code], N'''') + N', ' + LOWER([StatusId]) + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(200)) [-- table [Enum]].[Language]]]
 FROM [Enum].[Language]
 ORDER BY [Id];
 
@@ -71,3 +77,12 @@ SELECT CAST(N'IF NOT EXISTS (SELECT 1 FROM [Enum].[NamePartType] WHERE [Id]=' + 
 	  + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(250)) [-- table [Enum]].[NamePartType]]]
 FROM [Enum].[NamePartType]
 ORDER BY [Id];
+
+SELECT CAST(N'IF NOT EXISTS (SELECT 1 FROM [Enum].[ToolkitResponseCode] WHERE [Id]=' + LOWER([Id]) + N') ' + CHAR(13) + CHAR(10) 
+	+ N'INSERT INTO [Enum].[ToolkitResponseCode] ([Id], [Name], [Description], [IsSuccess]) ' 
+	  + CHAR(13) + CHAR(10) + N'VALUES (' + LOWER([Id]) + N', N' +  QUOTENAME([Name], N'''') + N', N' +  QUOTENAME([Description], N'''') 
+	  + N', ' +  LOWER([IsSuccess]) + N');' + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10) AS NVARCHAR(300)) [-- table [Enum]].[ToolkitResponseCode]]]
+FROM [Enum].[ToolkitResponseCode]
+ORDER BY [Id];
+
+

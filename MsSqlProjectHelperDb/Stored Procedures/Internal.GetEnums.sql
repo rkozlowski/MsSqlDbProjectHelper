@@ -88,6 +88,45 @@ BEGIN
 	INSERT INTO #EveryEnum ([Schema], [Table], [NameColumn], [ValueColumn], [ValueType])
 	EXEC(@query);
 
+
+	DECLARE c CURSOR LOCAL FAST_FORWARD FOR
+	SELECT [Schema], [NamePattern], [NameColumn]
+	FROM [dbo].[ProjectEnum]
+	WHERE [ProjectId] = @projectId AND [NameColumn] IS NOT NULL;
+
+	DECLARE @s NVARCHAR(128), @t NVARCHAR(200), @nc NVARCHAR(128);
+	DECLARE @query2 NVARCHAR(MAX);
+
+	OPEN c;
+	FETCH NEXT FROM c INTO @s, @t, @nc;
+
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+		SET @query2 = N'USE ' + QUOTENAME(@dbName) + N';
+		SELECT 
+			' + QUOTENAME(@s, '''') + N' AS [Schema],
+			' + QUOTENAME(@t, '''') + N' AS [Table],
+			' + QUOTENAME(@nc, '''') + N' AS [NameColumn],
+			vc.[name] AS [ValueColumn],
+			vct.[name] AS [ValueType]
+		FROM sys.tables t
+		JOIN sys.indexes pk ON pk.object_id = t.object_id AND pk.is_primary_key = 1
+		JOIN sys.index_columns pkc ON pkc.object_id = pk.object_id AND pkc.index_id = pk.index_id AND pkc.index_column_id = 1 AND pkc.is_included_column = 0
+		JOIN sys.columns vc ON vc.object_id = pkc.object_id AND vc.column_id = pkc.column_id
+		JOIN sys.types vct ON vct.system_type_id = vc.system_type_id AND vct.user_type_id = vc.user_type_id AND vct.name IN (''tinyint'', ''smallint'', ''int'', ''bigint'')
+		WHERE t.[name] = ' + QUOTENAME(@t, '''') + ' AND SCHEMA_NAME(t.schema_id) = ' + QUOTENAME(@s, '''') + ';
+		';
+
+		-- PRINT (@query2);
+
+		INSERT INTO #EveryEnum ([Schema], [Table], [NameColumn], [ValueColumn], [ValueType])
+		EXEC (@query2);
+
+		FETCH NEXT FROM c INTO @s, @t, @nc;
+	END
+
+	CLOSE c; DEALLOCATE c;
+
     -- now filter only selected enums
 
     UPDATE e

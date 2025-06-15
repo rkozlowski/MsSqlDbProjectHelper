@@ -383,7 +383,9 @@ BEGIN
         [TvName] NVARCHAR(128) NOT NULL UNIQUE,
         [CreateTokenId] INT NOT NULL,
         [TableTokenId] INT NOT NULL,
-        [NameTokenId] INT NOT NULL
+        [NameTokenId] INT NOT NULL,
+		[EndTokenId] INT NOT NULL,
+		[CloseParenTokenId] INT NOT NULL
     );
 
     DECLARE	@returnValue int,
@@ -401,20 +403,26 @@ BEGIN
         RETURN @rc;
     END
 
-    DECLARE @tempSpName NVARCHAR(128) = N'##' + LEFT(@spName, 64) + N'__' + REPLACE(LOWER(NEWID()), '-', '');
+    DECLARE @tempSpName NVARCHAR(128) = N'__Temp__' + LEFT(@spName, 64) + N'__' + REPLACE(LOWER(NEWID()), '-', '');
 
-    INSERT INTO #TempTable ([Name], [TvName], [CreateTokenId], [TableTokenId], [NameTokenId])
-    SELECT tkn.[Text], N'@' + [Internal].[GetCaseName](@C_CAMEL_CASE, LEFT(tkn.[Text], 65), NULL) + N'___' + REPLACE(LOWER(NEWID()), '-', ''), tkc.[Id], tkt.[Id], tkn.[Id]
+    INSERT INTO #TempTable ([Name], [TvName], [CreateTokenId], [TableTokenId], [NameTokenId], [EndTokenId], [CloseParenTokenId])
+    SELECT tkn.[Text], N'@' + [Internal].[GetCaseName](@C_CAMEL_CASE, LEFT(tkn.[Text], 65), NULL) + N'___' + REPLACE(LOWER(NEWID()), '-', ''), tkc.[Id], tkt.[Id], tkn.[Id],
+		st.[EndTokenId], tkcp.[Id]
     FROM #Statement st    
     JOIN #StatementPart stp ON stp.[StatementId]=st.[Id] AND stp.[TypeId]=@SP_IDENTIFIER AND stp.[StartTokenId]=stp.[EndTokenId]
     JOIN #Token tkn ON tkn.[Id]=stp.[StartTokenId]
     JOIN #Token tkc ON tkc.[Id] >= st.[StartTokenId] AND tkc.[Id] <= st.[EndTokenId] AND tkc.[TypeId]=@TT_KEYWORD AND tkc.[KeywordId]=@KW_CREATE
     JOIN #Token tkt ON tkt.[Id] >= st.[StartTokenId] AND tkt.[Id] <= st.[EndTokenId] AND tkt.[TypeId]=@TT_KEYWORD AND tkt.[KeywordId]=@KW_TABLE AND tkt.[Id] > tkc.[Id]
-    LEFT JOIN #Token xtkc ON xtkc.[Id] >= st.[StartTokenId] AND xtkc.[Id] <= st.[EndTokenId] AND xtkc.[TypeId]=@TT_KEYWORD AND xtkc.[KeywordId]=@KW_CREATE AND xtkc.[Id] < tkc.[Id]
+	JOIN #Token tkcp ON tkcp.[Id] >= st.[StartTokenId] AND tkcp.[Id] <= st.[EndTokenId] AND tkcp.[Text] = ')' AND tkcp.[TypeId]=@TT_DELIMITER AND tkcp.[Id] > tkt.[Id]
+	
+	LEFT JOIN #Token xtkc ON xtkc.[Id] >= st.[StartTokenId] AND xtkc.[Id] <= st.[EndTokenId] AND xtkc.[TypeId]=@TT_KEYWORD AND xtkc.[KeywordId]=@KW_CREATE AND xtkc.[Id] < tkc.[Id]
     LEFT JOIN #Token xtkt ON xtkt.[Id] >= st.[StartTokenId] AND xtkt.[Id] <= st.[EndTokenId] AND xtkt.[TypeId]=@TT_KEYWORD AND xtkt.[KeywordId]=@KW_TABLE AND xtkt.[Id] < tkt.[Id]
-    WHERE st.[TypeId]=@ST_CREATE_TABLE AND tkn.[Text] LIKE N'#[^#]%' AND xtkc.[Id] IS NULL AND xtkt.[Id] IS NULL;
+	LEFT JOIN #Token xtkcp ON xtkcp.[Id] >= st.[StartTokenId] AND xtkcp.[Id] <= st.[EndTokenId] AND xtkcp.[Text] = ')' AND xtkcp.[TypeId]=@TT_DELIMITER AND xtkcp.[Id] > tkcp.[Id]
+
+	WHERE st.[TypeId]=@ST_CREATE_TABLE AND tkn.[Text] LIKE N'#[^#]%' AND xtkc.[Id] IS NULL AND xtkt.[Id] IS NULL AND xtkcp.[Id] IS NULL;
     
-    --SELECT * FROM #TempTable;
+    -- SELECT * 
+	-- FROM #TempTable;
 
     -- change SP name
     WITH cte AS
@@ -517,7 +525,16 @@ BEGIN
     SET tk.[TypeId]=@TT_KEYWORD, tk.[SubtypeId]=NULL, tk.[KeywordId]=@KW_TABLE, tk.[Text]=N'TABLE'
     FROM #TempTable tt
     JOIN #Token tk ON tt.[NameTokenId]=tk.[Id];
-    
+
+
+	-- Remove trailing comma before closing parenthesis in DECLARE @... TABLE
+	UPDATE tk
+	SET tk.[TypeId]=@TT_COMMENT, tk.[SubTypeId]=@TST_MULTI_LINE_COMMENT, tk.[Text]='/* comma removed */'
+	FROM #TempTable tt
+	JOIN #Token tk ON tk.[Text] = ',' AND tk.[TypeId]=@TT_SEPARATOR AND tk.[Id] < tt.[CloseParenTokenId] AND tk.[Id] > tt.[NameTokenId]
+	LEFT JOIN #Token xtk ON xtk.[TypeId]<>@TT_WHITESPACE AND xtk.[Id] > tk.[Id] AND xtk.[Id] < tt.[CloseParenTokenId]
+	WHERE xtk.[Id] IS NULL;
+
     -- replace #... with @... in all identifiers
 
     UPDATE tk
@@ -532,9 +549,9 @@ BEGIN
 
     
 
-    --PRINT N'---------------------------------'
-    --SELECT @tsql;
-    --PRINT N'---------------------------------'
+    -- PRINT N'---------------------------------'
+    -- SELECT @tsql;
+    -- PRINT N'---------------------------------'
 
     SET @query = N'USE ' + QUOTENAME(@dbName) + N';    
     '

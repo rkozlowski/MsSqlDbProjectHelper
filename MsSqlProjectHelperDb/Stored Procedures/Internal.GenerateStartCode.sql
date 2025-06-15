@@ -23,6 +23,9 @@ BEGIN
 	DECLARE @TT_START_COMMENT_END TINYINT = 41;
 	DECLARE @TT_STATIC_CTOR_END TINYINT = 42;
 	DECLARE @TT_RS_MAPPING_SETUP TINYINT = 43;
+	DECLARE @TT_WRAPPER_ENUM_START TINYINT = 48;
+	DECLARE @TT_WRAPPER_ENUM_END TINYINT = 49;
+	DECLARE @TT_WRAPPER_ENUM_ITEM TINYINT = 50;
 
 	DECLARE @namespaceName NVARCHAR(100);
 	DECLARE @className NVARCHAR(100);
@@ -69,7 +72,7 @@ BEGIN
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'ToolUrl', N'https://github.com/rkozlowski/MsSqlDbProjectHelper');	
 	INSERT INTO @vars ([Name], [Value]) 
 	SELECT TOP(1) N'ToolVersion', [Version]
-	FROM [dbo].[Version]
+	FROM [dbo].[SchemaVersion]
 	ORDER BY [Id] DESC;
 	INSERT INTO @vars ([Name], [Value]) VALUES (N'RsType', NULL);
 
@@ -119,7 +122,7 @@ BEGIN
 	DECLARE @id INT;
 	DECLARE @rsType VARCHAR(200);
 
-	SELECT @id=MIN([Id]) FROM #StoredProcResultType;
+	SELECT @id=MIN([Id]) FROM #StoredProcResultType;	
 	WHILE @id IS NOT NULL
 	BEGIN
 		SELECT @rsType=rt.[Name]
@@ -136,6 +139,9 @@ BEGIN
 		CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
 		WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_RS_MAPPING_SETUP)
 		ORDER BY c.[Id];
+
+		
+
 		SELECT @id=MIN([Id]) FROM #StoredProcResultType WHERE [Id] > @id;
 	END
 
@@ -144,6 +150,56 @@ BEGIN
 	FROM [dbo].[Template] t
 	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
 	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_STATIC_CTOR_END)
+	ORDER BY c.[Id];
+
+	INSERT INTO @vars ([Name], [Value]) VALUES (N'EnumAccess', 'public');
+	INSERT INTO @vars ([Name], [Value]) VALUES (N'EnumName', 'StoredProcedureWrapper');
+	INSERT INTO @vars ([Name], [Value]) VALUES (N'Name', '');
+	INSERT INTO @vars ([Name], [Value]) VALUES (N'Sep', ',');
+
+	INSERT INTO #Output ([Text])
+	SELECT c.[Text]
+	FROM [dbo].[Template] t
+	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_WRAPPER_ENUM_START)
+	ORDER BY c.[Id];
+
+
+
+	SELECT @id=MIN([Id]) FROM #StoredProc;
+	DECLARE @lastId INT = (SELECT MAX([Id]) FROM #StoredProc);
+	DECLARE @wrapperName NVARCHAR(200);
+	WHILE @id IS NOT NULL
+	BEGIN
+		SELECT @wrapperName=[WrapperName]
+		FROM #StoredProc WHERE [Id]=@id;
+
+		UPDATE @vars
+		SET [Value]=@wrapperName
+		WHERE [Name]=N'Name';
+
+		IF @id=@lastId
+		BEGIN
+			UPDATE @vars
+			SET [Value]=''
+			WHERE [Name]=N'Sep';
+		END
+
+		INSERT INTO #Output ([Text])
+		SELECT c.[Text]
+		FROM [dbo].[Template] t
+		CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
+		WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_WRAPPER_ENUM_ITEM)
+		ORDER BY c.[Id];
+
+		SELECT @id=MIN([Id]) FROM #StoredProc WHERE [Id] > @id;
+	END
+
+	INSERT INTO #Output ([Text])
+	SELECT c.[Text]
+	FROM [dbo].[Template] t
+	CROSS APPLY [Internal].[ProcessTemplate](t.[Template], @vars) c
+	WHERE t.[Id]=[Internal].[GetTemplate](@langId, @langOptions, @TT_WRAPPER_ENUM_END)
 	ORDER BY c.[Id];
 	
 	EXEC(@query);
