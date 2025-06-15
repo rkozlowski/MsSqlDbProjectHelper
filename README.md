@@ -1,8 +1,39 @@
 # MsSqlDbProjectHelper
-Helper database/tools for calling SQL Server stored procedures from C#
-> [!NOTE]
-> The author of this tool is a huge fan of stored procedures and believes that using the stored procedures helps for better utilization of the database than using an ORM like the Entity Framework.
-> This tool aims to simplify the calling of the stored procedures from the C# code.
+
+**MsSqlDbProjectHelper** is a SQL Server–based helper for developers and database engineers who prefer **stored procedures and strong database-side logic** but also want to **automate reliable client code generation** for C#, .NET, and other languages.
+
+It works by:
+- Storing project definitions inside a dedicated SQL Server database
+- Using metadata and built-in or fallback parsers to inspect stored procedure interfaces
+- Generating clean, strongly-typed wrapper code for calling stored procedures, handling enums, and more
+
+---
+
+## 🎯 **Who is this for?**
+
+- Developers and teams who:
+  - Use SQL Server and stored procedures as the main way to expose business logic
+  - Want to generate and maintain client-side code automatically (e.g., C# service wrappers)
+  - Prefer a robust, version-controlled DB project to support multiple apps, tools, and automation
+
+---
+
+## 🔑 **Core Goals**
+
+- Make it easy to define, manage, and share database projects for code generation
+- Reduce repetitive manual work when building stored procedure wrappers
+- Keep the DB schema and generated code consistent, testable, and safe for large, busy OLTP systems
+- Provide tooling support (CLI, GUI, IDE integrations) with a stable API level
+
+---
+
+## ⚙️ **How it works**
+
+1. Create a **Project** entry in the helper DB.
+2. Add schema definitions for stored procedures and enums.
+3. Call the provided stored procedures to generate code.
+4. Use the generated code in your C# (or future: Python, PowerShell) applications.
+
 
 # Quick start guide
 
@@ -10,7 +41,7 @@ Helper database/tools for calling SQL Server stored procedures from C#
 1. Download the latest full deployment script from the release page:
    https://github.com/rkozlowski/MsSqlDbProjectHelper/releases/latest
 2. Create an empty database on your development SQL Server (SQL Server 2019 or newer).
-3. Open MsSqlProjectHelperDb_FullDeploy_v_0.8.sql script in SQL Server Management Studio.
+3. Open MsSqlProjectHelperDb_FullDeploy_v_0.8.5.sql script in SQL Server Management Studio.
 4. Switch to SQLCMD Mode (Menu `Query->SQLCMD Mode`).
 5. Change the database name in line 16 (`:setvar DatabaseName "MsSqlProjectHelperDb"`) to the name of your new database created in point 2.
 6. Execute the script.
@@ -82,6 +113,7 @@ DECLARE	@return_value int,
 
 EXEC @return_value = [Project].[GenerateCode]
     @projectName = N'Test',                           -- Your project name
+    @databaseName = 'TargetDatabaseName', -- Optional: override default target DB
     @errorMessage = @errorMessage OUTPUT;             -- Error message (in case of failure)
 
 PRINT('Return Value:  ' + LOWER(@return_value));      -- Return value of 0 indicates success
@@ -92,3 +124,17 @@ GO
 
 ```
 
+## Known Limitations
+This project focuses on practical patterns used in production OLTP databases. 
+Some advanced or unusual SQL patterns (e.g., indexes on temp tables, dynamic schema modifications) are intentionally out of scope for the fallback parser.
+Please read [KNOWN_LIMITATIONS.md](/KNOWN_LIMITATIONS.md) to understand these trade-offs.
+
+## License
+Licensed under the [MIT License](/LICENSE).
+
+Practical meaning:
+You are free to:
+* Use, modify, and share this tool in commercial and non-commercial projects.
+* No warranty is provided — use at your own risk.
+* You must include the license if you redistribute it.
+ 
