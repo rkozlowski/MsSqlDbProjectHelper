@@ -1,3 +1,11 @@
+> ⚠️ This project has been **renamed and replaced** by [TigerWrap](https://github.com/rkozlowski/TigerWrap).
+> 
+> TigerWrap is the continuation of this tool with a CLI-first approach, enhanced code generation, and improved documentation.
+> Please use TigerWrap for all new projects.
+>
+
+---
+
 # MsSqlDbProjectHelper
 
 **MsSqlDbProjectHelper** is a SQL Server–based helper for developers and database engineers who prefer **stored procedures and strong database-side logic** but also want to **automate reliable client code generation** for C#, .NET, and other languages.
